@@ -1,0 +1,39 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>FlMMLWriter</title>
+<script type="text/javascript" src="js/FlMMLonHTML5/flmmlonhtml5-raw-wavsave.js"></script>
+<script type="text/javascript" src="js/main/main.js"></script>
+<link rel="stylesheet" type="text/css" href="css/main.css">
+</head>
+<body>
+	<textarea id="mmltxt" cols=120 rows=32 spellcheck="false"></textarea>
+	<div id="mmlhighlightwrap" style="pointer-events: none; position: absolute; top: 9px; left: 9px; display: inline-block; overflow: hidden; font-size: 16px">
+	 <span id="mmlhighlight" style="position: absolute;display: inline-block;">
+	 </span>
+	 <div id="scrollBar"></div>
+	</div>
+	<br>
+	<textarea id="mmlwarn" cols=120 rows=6></textarea><br>
+	<input type="file" id="mmlfile" onChange="onMMLSelected()"></input>
+	<input type="button" id="mmlreload" value="Reload" onClick="onMMLSelected()">
+	<input type="button" id="mmlplay" value="Play" onClick="play()">
+	<input type="button" id="mmlpause" value="Pause" onClick="pause()">
+	<input type="button" id="mmlstop" value="Stop" onClick="stop()">
+	<input type="range" id="mmlvolume" min="0" max="127" step="1" value="100" onClick="onVolumeChange()">
+	<span id="mmlstatus">Volume: 100</span><span>　　　　</span>
+	<span id="mmltime">00:00/00:00</span><br>
+	<span>URL/No.:</span><input type="text" id="mmlurl" value="">
+	<input type="button" id="mmlopenurl" value="Open" onClick="openUrl(document.getElementById('mmlurl').value)"><br>
+	<span>Filename:</span><input type="text" id="mmlsavefilename" value="">
+	<input type="button" id="mmlsavetxt" value="Save(.mml)" onClick="saveText('.mml')">
+	<input type="button" id="mmlsave" value="Save(.wav)" onClick="save(false)">
+	<input type="button" id="mmlsavemp3" value="Save(.mp3)" onClick="save(true)"><br>
+	<span>Editor:</span><br>
+	<span> Highlight:</span><input type="radio" id="hlt-off" name="editorHL" value="off" onClick="changeHltMode()"><span>off</span>
+	<input type="radio" id="hlt-delay" name="editorHL" value="delay" checked="checked" onClick="changeHltMode()"><span>delayed</span>
+	<input type="radio" id="hlt-rt" name="editorHL" value="rt" onClick="changeHltMode()"><span>realtime</span><br>
+</body>
+</html>

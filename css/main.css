@@ -1,0 +1,272 @@
+﻿/* main.css */
+
+/* google fonts */
+@import url(http://fonts.googleapis.com/css?family=Roboto+Mono);
+
+/* 音符 [a-gA-G][%]?[0-9]* */
+span.note {
+	color: #FFA000;
+}
+
+/* 休符 [rR] */
+span.rest {
+	color: #1E90FF;
+}
+
+/* タイ,スラー [&] */
+span.tie {
+	color: #9ACD32;
+}
+
+/* タイ,スラーの後ろの音符 */
+span.aftTie {
+	color: #D2691E;
+}
+
+/* デフォルト音長 [lL] */
+span.defLength {
+	color: #2E8B57;
+}
+
+/* ゲートタイム [qQ] */
+span.defQuant {
+	color: #2E8B57;
+}
+
+/* 絶対ゲートタイム [@[qQ]] */
+span.abQuant {
+	color: #2E8B57;
+}
+
+/* 音源(音色) [@[0-9\-]+] */
+span.tone {
+	color: #32CD32;
+}
+
+/* FM音源用LFO [@[mM][hH][0-9,]+] */
+span.fmLFO {
+	color: #00CED1;
+}
+
+/* パルス幅(デューティ比) */
+span.pDuty {
+	color: #32CD32;
+}
+
+/* ホワイトノイズ周波数 */
+span.noiseFreq {
+	color: #FFFACD;
+}
+
+/* フィルタ */
+span.filter {
+	color: #7FFFD4;
+}
+
+/* VCAエンベロープ */
+span.vcaEnv {
+	color: #9932CC;
+}
+
+/* VCFエンベロープ */
+span.vcfEnv {
+	color: #7FFFD4;
+}
+
+/* フォルマントフィルタ */
+span.formant {
+	color: #7CFC00;
+}
+
+/* アットマーク系のデフォルト */
+span.atmark {
+	color: #7CFC00;
+}
+
+/* 音量 [vV] */
+span.vel {
+	color: #9932CC;
+}
+
+/* 詳細音量 [@[vV]] */
+span.fVel {
+	color: #9932CC;
+}
+
+/* エクスプレッション [@[xX]] */
+span.expr {
+	color: #9932CC;
+}
+
+/* 音量モード [vV] */
+span.velMode {
+	color: #9932CC;
+}
+
+/* 音量シフト [(] */
+span.velUp {
+	color: #9370DB;
+}
+
+/* 音量シフト [)] */
+span.velDown {
+	color: #9370DB;
+}
+
+/* パン [@[pP]] */
+span.panpod {
+	color: #A52A2A;
+}
+
+/* オクターブ指定 [oO] */
+span.oct {
+	color: #F5DEB3;
+}
+
+/* オクターブシフト [<] */
+span.octShftUp {
+	color: #F5DEB3;
+}
+
+/* オクターブシフト [>] */
+span.octShftDown {
+	color: #F5DEB3;
+}
+
+/* ポルタメント [*], [@U0], [@U1], [@U2], [@U3]*/
+span.porta,
+span.midiPortaOff, span.midiPortaOn, span.midiPortaVel, span.midiPortaStart {
+	color: #48D1CC;
+}
+
+/* LFO [@L[\-0-9]+,[\-0-9]+[,[\-0-9]*]] */
+span.LFO {
+	color: #00CED1;
+}
+
+/* テンポ [tT] */
+span.tempo {
+	color: #7B68EE;
+}
+
+/* デチューン [@D[\+\-][0-9]+] */
+span.detune {
+	color: #F5DEB3;
+}
+
+/* 絶対ノートシフト [NS[\+\-][0-9]+] */
+span.noteShift {
+	color: #F5DEB3;
+}
+
+/* 相対ノートシフト [@NS[\+\-][0-9]+] */
+span.noteShiftR {
+	color: #F5DEB3;
+}
+
+/* コメント */
+span.comment {
+	color: #228B22;
+}
+
+/* ループ [/:[0-9]* ~ :/] */
+span.loop {
+	color: #FFD700;
+}
+
+/* ループ回数 [[0-9]*] */
+span.loopNum {
+	color: #B8860B;
+}
+
+/* 連符 [\{\}] */
+span.nplet {
+	color: #20B2AA;
+}
+
+/* 和音 [\[\]] */
+span.poly {
+	color: #00FA9A;
+}
+
+/* 和音数 [@pl] */
+span.polyNum {
+	color: #00FA9A;
+}
+
+/* メタデータ [# ~ \n] */
+span.metaData {
+	color: #008400;
+}
+
+/* マクロ宣言 [$...[{...}]?= ~ ;] */
+span.macroDecl {
+	color: #FF6347;
+}
+
+/* マクロ [$...[{...}]?] */
+span.macroUse {
+	color: #FF5010;
+}
+
+/* トラック終了 [;] */
+span.endTrack {
+	color: #FF1493;
+}
+
+/* テキストエリア, ハイライト共通 */
+textarea#mmltxt,
+textarea#mmlwarn,
+span#mmlhighlight {
+	color: #DDD; /* 通常文字色 */
+	font-size: 14px; /* 文字サイズ */
+	/* font-family: "Yu Gothic" , "Hiragino Kaku Gothic ProN", Roboto, "Droid Sans", Meiryo, Arial, sans-serif; */ /* 字体指定 */
+	font-family: "Roboto Mono", "Yu Gothic" , "Hiragino Kaku Gothic ProN", "MS Gothic", Osaka-mono, monospace; /* 字体指定(等幅) */
+	line-height: 17px;
+	white-space: pre-wrap;
+	word-wrap: break-word;
+	overflow: hidden;
+}
+
+/* テキストエリア */
+textarea#mmltxt {
+	resize: none;
+	background-color: #222218; /* 背景色 */
+	border: 1px solid #888;
+	margin: 0;
+}
+
+/* Warningエリア */
+textarea#mmlwarn {
+	resize: vartical;
+	background-color: #222218;
+	border: 1px solid #888;
+	overflow: auto;
+	width: 90vw;
+	padding: 4px;
+}
+
+/* ハイライト */
+span#mmlhighlight {
+	padding: 4px;
+}
+
+/* span 改行設定 */
+span {
+	white-space: pre-wrap;
+	word-wrap: break-word;
+}
+
+/* スクロールバー */
+div#scrollBar {
+	background-color: #777;
+	margin: 4px;
+	width: 8px;
+	border-radius: 4px;
+	opacity: 0.5;
+}
+
+/* スクロールバー hover */
+div#scrollBar:hover {
+	opacity: 0.8;
+}
