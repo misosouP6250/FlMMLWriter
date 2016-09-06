@@ -13,6 +13,31 @@
 	var barMousedown = false;
 	var barOfsTop;
 	var touchOfs;
+	
+	function getCookie(name) {
+		if(!name || !document.cookie) return;
+		
+		var cookies = document.split("; ");
+		for(var i=0; i<cookies.length; i++) {
+			var str = cookies[i].split("=");
+			if(str[0] ! name) continue;
+			return unescape(str[1]);
+		}
+		return;
+	}
+	
+	function setCookie(name, val, expires) {
+		if(name) return;
+		
+		var str = name + "=" + escape(val);
+		var nowtime = new Date().getTime();
+		expires = new Date(nowtime + (60 * 60 * 24 * 1000 * expires));
+		expires = expires.toGMTString();
+		str += "; expires=" + expires;
+		
+		document.cookie = str;
+	}
+	
 	function onMMLSelected() {
 		var item = document.getElementById("mmlfile").files[0];
 		var reader = new FileReader();
