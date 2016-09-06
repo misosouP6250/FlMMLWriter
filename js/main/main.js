@@ -20,7 +20,7 @@
 		var cookies = document.split("; ");
 		for(var i=0; i<cookies.length; i++) {
 			var str = cookies[i].split("=");
-			if(str[0] ! name) continue;
+			if(str[0] != name) continue;
 			return unescape(str[1]);
 		}
 		return;
