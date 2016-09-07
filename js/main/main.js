@@ -211,6 +211,7 @@
 			return str.replace(/([.*+?^=!:${}()|[\]\/\\])/g, "\\$1");
 		};
 		var macroName = [];
+		var macroArgName = [];
 		while(buf.length != 0){
 			var chr = buf.charAt(0);
 			var preTag = "";
@@ -250,6 +251,19 @@
 						postTag = "</span>";
 					}
 					break;
+				case '%':
+					if(macroArgName.length){	// マクロ内引数
+						for(var i=0; i<macroArgName.length; i++){
+								if(buf.slice(1, macroArgName[i].length+1) == macroArgName[i]){	// 宣言済みマクロなら
+									strCnt = macroArgName[i].length + 1;
+									chr = buf.slice(0, strCnt);
+									break;
+								}
+						}
+						preTag = "<span class='macroDecl'>";
+						postTag = "</span>";
+					}
+					break;
 				case ':':
 					if(buf.charAt(1) == "/"){	// ループ終わり
 						strCnt = 2;
@@ -262,7 +276,7 @@
 					postTag = "</span>";
 					break;
 				case '&':	// タイ,スラー
-					var ret = buf.slice(1).search(/[^a-gA-G0-9\%\+\-\.\s]/);	// 音符系以外の文字
+					var ret = buf.slice(1).search(/[^a-gA-G0-9\+\-\.\s]/);	// 音符系以外の文字
 					if(ret != -1){
 						strCnt = ret + 1;
 						chr = "&";
@@ -295,6 +309,7 @@
 					postTag = "</span>";
 					break;
 				case ';':	// トラック終了
+					macroArgName = [];
 					preTag = "<span class='endTrack'>";
 					postTag = "</span>";
 					break;
@@ -572,7 +587,7 @@
 				case 'e':	case 'f':	case 'g':
 				case 'A':	case 'B':	case 'C':	case 'D':
 				case 'E':	case 'F':	case 'G':				// 音符
-					var ret = buf.search(/[^a-gA-G0-9\%\+\-\.\s]/);	// 音符系以外の文字
+					var ret = buf.search(/[^a-gA-G0-9\+\-\.\s]/);	// 音符系以外の文字
 					if(ret != -1){
 						strCnt = ret;
 						chr = buf.slice(0, strCnt);
@@ -584,7 +599,7 @@
 					postTag = "</span>";
 					break;
 				case 'r':	case 'R':	// 休符
-					var ret = buf.search(/[^rR0-9\%\.]/);	// 休符系以外の文字
+					var ret = buf.search(/[^rR0-9\.]/);	// 休符系以外の文字
 					if(ret != -1){
 						strCnt = ret;
 						chr = buf.slice(0, strCnt);
@@ -693,7 +708,11 @@
 							}else{
 								macroName.push(tmpStr);
 							}
-							strCnt = ret + 1;
+							if(ret3 != -1){	// 引数付きマクロ
+								tmpStr = buf.slice(ret3 + 1, buf.slice(0, ret2).indexOf("\}")).replace(/\s/g, "").split(",");
+								macroArgName = tmpStr;
+							}
+							strCnt = ret2; // + 1 - 1;
 							chr = buf.slice(0, strCnt);
 							preTag = "<span class='macroDecl'>";
 							postTag = "</span>";
@@ -719,10 +738,10 @@
 									break;
 								}
 							}
-						if(!matching){
-							strCnt = buf.length;
-							chr = buf;
-						}
+						// if(!matching){
+						//	strCnt = buf.length;
+						//	chr = buf;
+						// }
 						preTag = "<span class='macroUse'>";
 						postTag = "</span>";
 					}
@@ -745,6 +764,7 @@
 			result += preTag + preChr + chr.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") + postChr + postTag;
 			buf = buf.slice(strCnt);
 		}	// while
+		console.log(macroArgName);
 		
 		return result;
 	}

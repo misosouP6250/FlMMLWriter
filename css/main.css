@@ -5,7 +5,8 @@
 
 /* 音符 [a-gA-G][%]?[0-9]* */
 span.note {
-	color: #FFA000;
+	/* color: #FFA000; */
+	color: #FEDFC0;
 }
 
 /* 休符 [rR] */
@@ -146,12 +147,13 @@ span.LFO {
 
 /* テンポ [tT] */
 span.tempo {
-	color: #7B68EE;
+	color: #7D70F0;
 }
 
 /* デチューン [@D[\+\-][0-9]+] */
 span.detune {
-	color: #F5DEB3;
+	/* color: #F5DEB3; */
+	color: #DAA520;
 }
 
 /* 絶対ノートシフト [NS[\+\-][0-9]+] */
@@ -201,12 +203,12 @@ span.metaData {
 
 /* マクロ宣言 [$...[{...}]?= ~ ;] */
 span.macroDecl {
-	color: #FF6347;
+	color: #FF7F50;
 }
 
 /* マクロ [$...[{...}]?] */
 span.macroUse {
-	color: #FF5010;
+	color: #FFC010;
 }
 
 /* トラック終了 [;] */
