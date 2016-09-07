@@ -174,7 +174,7 @@
 						if(rcont)
 							onMMLLoaded({target: {result: imprtComment + rcont}});
 		};
-		console.log(yqlUrl);
+		// console.log(yqlUrl);
 		myxhr.open("GET", yqlUrl);
 		myxhr.responseType = "json";
 		myxhr.send(null);
@@ -764,7 +764,6 @@
 			result += preTag + preChr + chr.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") + postChr + postTag;
 			buf = buf.slice(strCnt);
 		}	// while
-		console.log(macroArgName);
 		
 		return result;
 	}
