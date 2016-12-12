@@ -228,6 +228,7 @@ span#mmlhighlight {
 	white-space: pre-wrap;
 	word-wrap: break-word;
 	overflow: hidden;
+	padding: 4px;
 }
 
 /* テキストエリア */
@@ -245,13 +246,15 @@ textarea#mmlwarn {
 	border: 1px solid #888;
 	overflow: auto;
 	width: 90vw;
-	padding: 4px;
+	/* padding: 4px; */
 }
 
 /* ハイライト */
+/*
 span#mmlhighlight {
 	padding: 4px;
 }
+*/
 
 /* span 改行設定 */
 span {

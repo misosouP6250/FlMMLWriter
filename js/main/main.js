@@ -276,6 +276,41 @@
 					postTag = "</span>";
 					break;
 				case '&':	// タイ,スラー
+				switch(buf.charAt(1)){
+					case 'c': case 'd': case 'e': case 'f': case 'g': case 'a': case 'b':
+					case 'C': case 'D': case 'E': case 'F': case 'G': case 'A': case 'B':	// 音程
+						var ret = buf.slice(2).search(/[^0-9\+\-\.\s]/);	// 音符系以外の文字
+						if(ret != -1){
+							strCnt = ret + 2;
+							chr = "&";
+							postChr = "<span class='aftTie'>" + buf.slice(1, strCnt) + "</span>";
+						}else{
+							strCnt = buf.length;
+							chr = buf;
+						}
+						preTag = "<span class='tie'>";
+						postTag = "</span>";
+						break;
+					case '0': case '1': case '2': case '3': case '4':
+					case '5': case '6': case '7': case '8': case '9':	// 音長
+						var ret = buf.slice(2).search(/[^0-9\.\s]/);	// 音符系以外の文字
+						if(ret != -1){
+							strCnt = ret + 2;
+							chr = "&";
+							postChr = "<span class='aftTie'>" + buf.slice(1, strCnt) + "</span>";
+						}else{
+							strCnt = buf.length;
+							chr = buf;
+						}
+						preTag = "<span class='tie'>";
+						postTag = "</span>";
+						break;
+					default:
+						strCnt = 1;
+						chr = '&';
+						break;
+				}
+					/*
 					var ret = buf.slice(1).search(/[^a-gA-G0-9\+\-\.\s]/);	// 音符系以外の文字
 					if(ret != -1){
 						strCnt = ret + 1;
@@ -288,6 +323,7 @@
 					preTag = "<span class='tie'>";
 					postTag = "</span>";
 					break;
+					*/
 				case '<':	// オクターブシフト アップ(default)
 					preTag = "<span class='octShftUp'>";
 					postTag = "</span>";
