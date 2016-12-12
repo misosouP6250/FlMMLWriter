@@ -220,6 +220,7 @@ span.endTrack {
 textarea#mmltxt,
 textarea#mmlwarn,
 span#mmlhighlight {
+	-webkit-appearance: none;
 	color: #DDD; /* 通常文字色 */
 	font-size: 14px; /* 文字サイズ */
 	/* font-family: "Yu Gothic" , "Hiragino Kaku Gothic ProN", Roboto, "Droid Sans", Meiryo, Arial, sans-serif; */ /* 字体指定 */
