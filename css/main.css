@@ -229,7 +229,7 @@ span#mmlhighlight {
 	word-wrap: break-word;
 	overflow: hidden;
 	padding: 4px;
-	margin: 1px 2px;
+	margin: 0;
 }
 
 /* テキストエリア */
@@ -237,7 +237,6 @@ textarea#mmltxt {
 	resize: none;
 	background-color: #222218; /* 背景色 */
 	border: 1px solid #888;
-	/* margin: 0; */
 }
 
 /* Warningエリア */
@@ -247,7 +246,6 @@ textarea#mmlwarn {
 	border: 1px solid #888;
 	overflow: auto;
 	width: 90vw;
-	/* padding: 4px; */
 }
 
 /* ハイライト */
