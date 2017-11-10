@@ -13,6 +13,31 @@
 	var barMousedown = false;
 	var barOfsTop;
 	var touchOfs;
+	
+	function getCookie(name) {
+		if(!name || !document.cookie) return;
+		
+		var cookies = document.split("; ");
+		for(var i=0; i<cookies.length; i++) {
+			var str = cookies[i].split("=");
+			if(str[0] != name) continue;
+			return unescape(str[1]);
+		}
+		return;
+	}
+	
+	function setCookie(name, val, expires) {
+		if(name) return;
+		
+		var str = name + "=" + escape(val);
+		var nowtime = new Date().getTime();
+		expires = new Date(nowtime + (60 * 60 * 24 * 1000 * expires));
+		expires = expires.toGMTString();
+		str += "; expires=" + expires;
+		
+		document.cookie = str;
+	}
+	
 	function onMMLSelected() {
 		var item = document.getElementById("mmlfile").files[0];
 		var reader = new FileReader();
@@ -149,7 +174,7 @@
 						if(rcont)
 							onMMLLoaded({target: {result: imprtComment + rcont}});
 		};
-		console.log(yqlUrl);
+		// console.log(yqlUrl);
 		myxhr.open("GET", yqlUrl);
 		myxhr.responseType = "json";
 		myxhr.send(null);
@@ -186,6 +211,7 @@
 			return str.replace(/([.*+?^=!:${}()|[\]\/\\])/g, "\\$1");
 		};
 		var macroName = [];
+		var macroArgName = [];
 		while(buf.length != 0){
 			var chr = buf.charAt(0);
 			var preTag = "";
@@ -225,6 +251,19 @@
 						postTag = "</span>";
 					}
 					break;
+				case '%':
+					if(macroArgName.length){	// マクロ内引数
+						for(var i=0; i<macroArgName.length; i++){
+								if(buf.slice(1, macroArgName[i].length+1) == macroArgName[i]){	// 宣言済みマクロなら
+									strCnt = macroArgName[i].length + 1;
+									chr = buf.slice(0, strCnt);
+									break;
+								}
+						}
+						preTag = "<span class='macroDecl'>";
+						postTag = "</span>";
+					}
+					break;
 				case ':':
 					if(buf.charAt(1) == "/"){	// ループ終わり
 						strCnt = 2;
@@ -237,7 +276,42 @@
 					postTag = "</span>";
 					break;
 				case '&':	// タイ,スラー
-					var ret = buf.slice(1).search(/[^a-gA-G0-9\%\+\-\.\s]/);	// 音符系以外の文字
+				switch(buf.charAt(1)){
+					case 'c': case 'd': case 'e': case 'f': case 'g': case 'a': case 'b':
+					case 'C': case 'D': case 'E': case 'F': case 'G': case 'A': case 'B':	// 音程
+						var ret = buf.slice(2).search(/[^0-9\+\-\.\s]/);	// 音符系以外の文字
+						if(ret != -1){
+							strCnt = ret + 2;
+							chr = "&";
+							postChr = "<span class='aftTie'>" + buf.slice(1, strCnt) + "</span>";
+						}else{
+							strCnt = buf.length;
+							chr = buf;
+						}
+						preTag = "<span class='tie'>";
+						postTag = "</span>";
+						break;
+					case '0': case '1': case '2': case '3': case '4':
+					case '5': case '6': case '7': case '8': case '9':	// 音長
+						var ret = buf.slice(2).search(/[^0-9\.\s]/);	// 音符系以外の文字
+						if(ret != -1){
+							strCnt = ret + 2;
+							chr = "&";
+							postChr = "<span class='aftTie'>" + buf.slice(1, strCnt) + "</span>";
+						}else{
+							strCnt = buf.length;
+							chr = buf;
+						}
+						preTag = "<span class='tie'>";
+						postTag = "</span>";
+						break;
+					default:
+						strCnt = 1;
+						chr = '&';
+						break;
+				}
+					/*
+					var ret = buf.slice(1).search(/[^a-gA-G0-9\+\-\.\s]/);	// 音符系以外の文字
 					if(ret != -1){
 						strCnt = ret + 1;
 						chr = "&";
@@ -249,6 +323,7 @@
 					preTag = "<span class='tie'>";
 					postTag = "</span>";
 					break;
+					*/
 				case '<':	// オクターブシフト アップ(default)
 					preTag = "<span class='octShftUp'>";
 					postTag = "</span>";
@@ -270,6 +345,7 @@
 					postTag = "</span>";
 					break;
 				case ';':	// トラック終了
+					macroArgName = [];
 					preTag = "<span class='endTrack'>";
 					postTag = "</span>";
 					break;
@@ -547,7 +623,7 @@
 				case 'e':	case 'f':	case 'g':
 				case 'A':	case 'B':	case 'C':	case 'D':
 				case 'E':	case 'F':	case 'G':				// 音符
-					var ret = buf.search(/[^a-gA-G0-9\%\+\-\.\s]/);	// 音符系以外の文字
+					var ret = buf.search(/[^a-gA-G0-9\+\-\.\s]/);	// 音符系以外の文字
 					if(ret != -1){
 						strCnt = ret;
 						chr = buf.slice(0, strCnt);
@@ -559,7 +635,7 @@
 					postTag = "</span>";
 					break;
 				case 'r':	case 'R':	// 休符
-					var ret = buf.search(/[^rR0-9\%\.]/);	// 休符系以外の文字
+					var ret = buf.search(/[^rR0-9\.]/);	// 休符系以外の文字
 					if(ret != -1){
 						strCnt = ret;
 						chr = buf.slice(0, strCnt);
@@ -668,7 +744,11 @@
 							}else{
 								macroName.push(tmpStr);
 							}
-							strCnt = ret + 1;
+							if(ret3 != -1){	// 引数付きマクロ
+								tmpStr = buf.slice(ret3 + 1, buf.slice(0, ret2).indexOf("\}")).replace(/\s/g, "").split(",");
+								macroArgName = tmpStr;
+							}
+							strCnt = ret2; // + 1 - 1;
 							chr = buf.slice(0, strCnt);
 							preTag = "<span class='macroDecl'>";
 							postTag = "</span>";
@@ -694,10 +774,10 @@
 									break;
 								}
 							}
-						if(!matching){
-							strCnt = buf.length;
-							chr = buf;
-						}
+						// if(!matching){
+						//	strCnt = buf.length;
+						//	chr = buf;
+						// }
 						preTag = "<span class='macroUse'>";
 						postTag = "</span>";
 					}
