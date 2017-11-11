@@ -19,4 +19,9 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
-
+### https://raw.githubusercontent.com/github/gitignore/master/Global/VisualStudioCode.gitignore
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json

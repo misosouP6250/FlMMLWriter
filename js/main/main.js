@@ -1,8 +1,34 @@
 ﻿"use strict";
+
+function getCookie(name) {
+	if(!name || !document.cookie) return;
+	
+	var cookies = document.split("; ");
+	for(var i=0; i<cookies.length; i++) {
+		var str = cookies[i].split("=");
+		if(str[0] != name) continue;
+		return unescape(str[1]);
+	}
+	return;
+}
+
+function setCookie(name, val, expires) {
+	if(name) return;
+	
+	var str = name + "=" + escape(val);
+	var nowtime = new Date().getTime();
+	expires = new Date(nowtime + (60 * 60 * 24 * 1000 * expires));
+	expires = expires.toGMTString();
+	str += "; expires=" + expires;
+	
+	document.cookie = str;
+}
+
+var FlMMLWriter = function () {
 	var flmml, flmmlSave;
 	var isFirst = true;
-	var isFirstSave = true;
-	var isPlay;
+	var isSave = false;
+	var isPlay = true;
 	var editorHltOn = false;
 	var editorHltDelayed = false;
 	var editorColor = "";
@@ -13,49 +39,145 @@
 	var barMousedown = false;
 	var barOfsTop;
 	var touchOfs;
-	
-	function getCookie(name) {
-		if(!name || !document.cookie) return;
-		
-		var cookies = document.split("; ");
-		for(var i=0; i<cookies.length; i++) {
-			var str = cookies[i].split("=");
-			if(str[0] != name) continue;
-			return unescape(str[1]);
+	var nowVol = 100;
+	var processCount = -1;
+	var procSamples = 0;
+	var recData = [];
+	var renderProgress = 0;
+	var renderingComplete = false;
+	var saveSampleRate = 44100;
+	var saveBufferSize = 65536;
+	var saveFilename = "flmml";
+	var isEncodeMP3 = false;
+	var oldBufferReady = false;
+
+	// function flmmlDefaultPlaySound(){};
+	var flmmlDefaultPlaySound;
+	var flmmlDefaultAudioProcess;
+
+	// 致し方なく
+	var COM_BOOT      =  1, // Main->Worker
+		COM_PLAY      =  2, // Main->Worker
+		COM_STOP      =  3, // Main->Worker
+		COM_PAUSE     =  4, // Main->Worker
+		COM_BUFFER    =  5, // Main->Worker->Main
+		COM_COMPCOMP  =  6, // Worker->Main
+		COM_BUFRING   =  7, // Worker->Main
+		COM_COMPLETE  =  8, // Worker->Main
+		COM_SYNCINFO  =  9, // Main->Worker->Main
+		COM_PLAYSOUND = 10, // Worker->Main
+		COM_STOPSOUND = 11, // Worker->Main->Worker
+		COM_DEBUG     = 12; // Worker->Main
+
+	function FlMMLWriter() {
+	}
+
+	function extend (target, object) {
+        for (var name in object) {
+            target[name] = object[name];
+        }
+        return target;
+    }
+
+	function saveWav(procSmpl) {
+		var encodeWAV = function(samples, sampleRate, ch) {
+			var buffer = new ArrayBuffer(44 + samples.length * 2);
+			var view = new DataView(buffer);
+
+			var writeString = function(view, offset, string) {
+				for (var i = 0; i < string.length; i++){
+					view.setUint8(offset + i, string.charCodeAt(i));
+				}
+			};
+
+			var floatTo16BitPCM = function(output, offset, input) {
+				for (var i = 0; i < input.length; i++, offset += 2){
+					var s = Math.max(-1, Math.min(1, input[i]));
+					output.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+				}
+			};
+
+			writeString(view, 0, 'RIFF');  // RIFFヘッダ
+			view.setUint32(4, 32 + samples.length * 2, true); // これ以降のファイルサイズ
+			writeString(view, 8, 'WAVE'); // WAVEヘッダ
+			writeString(view, 12, 'fmt '); // fmtチャンク
+			view.setUint32(16, 16, true); // fmtチャンクのバイト数
+			view.setUint16(20, 1, true); // フォーマットID
+			view.setUint16(22, ch, true); // チャンネル数
+			view.setUint32(24, sampleRate, true); // サンプリングレート
+			view.setUint32(28, sampleRate * 2 * ch, true); // データ速度
+			view.setUint16(32, 2 * ch, true); // ブロックサイズ
+			view.setUint16(34, 16, true); // サンプルあたりのビット数
+			writeString(view, 36, 'data'); // dataチャンク
+			view.setUint32(40, samples.length * 2, true); // 波形データのバイト数
+			floatTo16BitPCM(view, 44, samples); // 波形データ
+
+			return view;
+		};
+		var mergeBuffers = function(audioData, numSample) {
+			var samples = new Float32Array(numSample);
+			var sampleIdx = 0;
+			for (var i = 0; i < audioData.length; i++) {
+				for (var j = 0; j < audioData[i].length; j++) {
+					samples[sampleIdx] = audioData[i][j];
+					if(++sampleIdx > numSample)
+						return samples;
+				}
+			}
+			return samples;
+		};
+
+		console.log(recData);
+		var dataview = encodeWAV(mergeBuffers(recData, procSmpl * 2), saveSampleRate, 2);
+		var audioBlob = new Blob([dataview], { type: 'audio/wav' });
+
+		return audioBlob;
+	}
+
+	function dlBlob(blob, ext) {
+		if (window.navigator.msSaveBlob) { 
+			window.navigator.msSaveOrOpenBlob(blob, saveFilename + ext);
+		}else{
+			var myURL = window.URL || window.mozURL || window.webkitURL;
+			var url = myURL.createObjectURL(blob);
+			var dlLink = document.createElement("a");
+			document.body.appendChild(dlLink);
+			dlLink.href = url;
+			dlLink.download = saveFilename + ext;
+			dlLink.click();
+			document.body.removeChild(dlLink);
 		}
-		return;
 	}
 	
-	function setCookie(name, val, expires) {
-		if(name) return;
-		
-		var str = name + "=" + escape(val);
-		var nowtime = new Date().getTime();
-		expires = new Date(nowtime + (60 * 60 * 24 * 1000 * expires));
-		expires = expires.toGMTString();
-		str += "; expires=" + expires;
-		
-		document.cookie = str;
-	}
-	
-	function onMMLSelected() {
-		var item = document.getElementById("mmlfile").files[0];
-		var reader = new FileReader();
-		reader.onload = onMMLLoaded;
-		reader.readAsText(item);
+	function onMMLSelected(file) {
+		// var item = document.getElementById("mmlfile").files[0];
+		// var item = file.files[0];
+		// console.log(typeof file);
+		if(typeof file === 'object') {
+			var item = file.files[0];
+			// console.log(typeof item);
+			if(typeof item !== 'object')	return;
+			var reader = new FileReader();
+			reader.onload = onMMLLoaded;
+			reader.readAsText(item);
+		}
 	}
 	
 	function onMMLLoaded(e) {
 		var elm = document.getElementById("mmltxt");
 		var elmHlt = document.getElementById("mmlhighlight");
+		console.log(e);
 
 		elm.value = e.target.result;
 		elmHlt.innerHTML = highlightFlMML(e.target.result);
 		updateScrBar();
 	}
 	
-	function onVolumeChange() {
-		var vol = document.getElementById("mmlvolume").value;
+	function onVolumeChange(vol) {
+		// var vol = document.getElementById("mmlvolume").value;
+		// var volVal = vol.value;
+		if(isNaN(vol))
+			vol = nowVol;
 		if(isPlay)
 			flmml.setMasterVolume(parseInt(vol));
 		var elm = document.getElementById("mmlstatus");
@@ -63,11 +185,11 @@
 	}
 	
 	function onCompileComplete() {
+		console.log(flmml.getTotalMSec());
+		procSamples = Math.ceil(flmml.getTotalMSec() / 1000.0 * saveSampleRate);
 		var elm = document.getElementById("mmlwarn");
-		if(isPlay)
-			elm.value = flmml.getWarnings();
-		else
-			elm.value = flmmlSave.getWarnings();
+		elm.value = flmml.getWarnings();
+		// elm.value = flmml.getWarnings();
 	}
 	
 	function onSyncInfo() {
@@ -102,34 +224,198 @@
 		onVolumeChange();
 	}
 
+	function onComplete() {
+		if(!isPlay) {
+			console.log("complete! smpls: "+ processCount);
+			var audioBlob = isEncodeMP3 ? saveMP3.call(this, Math.min(procSamples, processCount)) : saveWav.call(this, Math.min(procSamples, processCount));
+			if(audioBlob)
+				dlBlob.call(this, audioBlob, ".wav");
+			recData = [];
+			isRendering(false);
+			// flmml.setBufferSize(8192);
+		}
+	}
+
+	function completeRendering() {
+		renderingComplete = true;
+	}
 	
-	function createFlMMLonHTML5(isSave) {
-		if(!isSave){
+	function createFlMMLonHTML5() {
+		if(isPlay){
 			flmml = new FlMMLonHTML5();
 			flmml.oncompilecomplete = onCompileComplete;
 			flmml.onsyncinfo = onSyncInfo;
 			flmml.onbuffering = onBuffering;
+			flmml.oncomplete = onComplete;
 			isFirst = false;
+			// console.log(flmml);
+			// flmmlDefaultAudioProcess = flmml.onAudioProcessBinded;
 		}else{
-			flmmlSave = new FlMMLonHTML5(true);
-			flmmlSave.oncompilecomplete = onCompileComplete;
-			flmmlSave.onrendering = onRendering;
-			flmmlSave.onmp3encodestart = onEncodeStart;
-			flmmlSave.onmp3encodecompleted = onEncodeComplete;
-			flmmlSave.setInfoInterval(250);
-			isFirstSave = false;
+			flmml = new FlMMLonHTML5();
+			flmml.oncompilecomplete = onCompileComplete;
+			flmml.onsyncinfo = onSyncInfo;
+			flmml.onbuffering = onBuffering;
+			flmml.oncomplete = onComplete;
+			isFirst = false;
+			flmml.worker.postMessage({
+				type: COM_BOOT,
+				sampleRate: saveSampleRate,
+				bufferSize: saveBufferSize
+			});
+			flmml.onAudioProcessBinded = onSaveProcess;
 		}
+	}
+
+	function saveSound() {
+		if (flmml.gain || flmml.scrProc || flmml.oscDmy) return;
+		
+		processCount = -1;
+		console.log(processCount);
+		console.log(flmml.getTotalMSecBinded());
+		procSamples = Math.ceil(flmml.getTotalMSecBinded() / 1000.0 * saveSampleRate);
+		recData = [];
+		var ret = window.setInterval( (function(){
+		if(processCount == -1) {
+			console.log("pcnt:-1");
+			console.log(processCount);
+			onSaveProcess();
+			processCount = 0;
+		}else{
+			console.log(processCount);
+			if(flmml.bufferReady)
+				onSaveProcess();
+			if(processCount < procSamples){
+				var oldRP = renderProgress;
+				renderProgress = parseInt(processCount / procSamples * 1000)/10.0;
+				if(oldRP < renderProgress){
+					onrendering && onrendering(renderProgress);
+					   // flmml.trigger("rendering", flmml.renderProgress);
+				}
+			}else if(renderingComplete){
+				window.clearInterval(ret);
+				renderProgress = 100.0;
+				onrendering && onrendering(renderProgress);
+					   // flmml.trigger("rendering", flmml.renderProgress);
+					// var audioBlob = flmml.isEncodeMP3 ? saveMP3.call(this, Math.min(procSamples, processCount)) : saveWAV.call(this, Math.min(procSamples, processCount));
+				console.log("complete! smpls: "+ processCount);
+					var audioBlob = isEncodeMP3 ? saveMP3.call(this, Math.min(procSamples, processCount)) : saveWAV.call(this, Math.min(procSamples, processCount));
+					if(audioBlob)
+						dlBlob.call(this, audioBlob, ".wav");
+				flmml.removeEventListener("complete", completeRendering);
+				renderingComplete = false;
+				flmml.bufferReady = false;
+			}
+		}
+		// })(), 0 );
+		}).bind(this), 0 );
+						
+		flmml.addEventListener("complete", completeRendering);
+	}
+
+	function resetBuffer_Rate() {
+		var AudioCtx = window.AudioContext || window.webkitAudioContext;
+		var actx = new AudioCtx();
+		console.log(actx.sampleRate);
+		flmml.worker.postMessage({
+			type: COM_BOOT,
+			sampleRate: actx.sampleRate,
+			bufferSize: 8192
+		});
+	}
+
+	function isRendering(b) {
+		isSave = b;
+		if(b) {
+			flmml.worker.postMessage({
+				type: COM_BOOT,
+				sampleRate: saveSampleRate,
+				bufferSize: saveBufferSize
+			});
+			flmml.onAudioProcessBinded = onSaveProcess;
+			// console.log(onSaveProcess);
+		} else {
+			// console.log(String(FlMMLonHTML5.audioCtx.sampleRate) +" "+ saveBufferSize);
+			resetBuffer_Rate();
+			flmml.onAudioProcessBinded = flmmlDefaultAudioProcess;
+			// console.log(flmmlDefaultAudioProcess);
+		}
+	}
+
+	function onSaveProcess() {
+		var cback = function() {
+				var in0 = flmml.buffer[0];
+				var in1 = flmml.buffer[1];
+				var bufferData = new Float32Array(in0.length * 2);
+				for(var i=0; i<in0.length; i++){
+					bufferData[i*2] = in0[i];
+					bufferData[i*2+1] = in1[i];
+				}
+				recData.push(bufferData);
+				processCount += in0.length;
+				
+				flmml.bufferReady = false;
+				flmml.worker.postMessage({ type: COM_BUFFER, retBuf: flmml.buffer }, [flmml.buffer[0].buffer, flmml.buffer[1].buffer]);
+				// return true;
+		};
+		if (processCount < 0) {
+			flmml.worker.postMessage({ type: COM_BUFFER, retBuf: null });
+			console.log("buffer requested,processCount: "+processCount);
+			processCount = 0;
+		} else if (flmml.bufferReady) {
+			cback();
+		} else {
+			var tid = setInterval((function() {
+				if(flmml.bufferReady) {
+					clearInterval(tid);
+					cback();
+				}
+			})(), 150);
+		}
+		/*
+		if (flmml.bufferReady) {
+			var in0 = flmml.buffer[0];
+			var in1 = flmml.buffer[1];
+			var bufferData = new Float32Array(in0.length * 2);
+			for(var i=0; i<in0.length; i++){
+				bufferData[i*2] = in0[i];
+				bufferData[i*2+1] = in1[i];
+			}
+			recData.push(bufferData);
+			processCount += in0.length;
+			
+			flmml.bufferReady = false;
+			flmml.worker.postMessage({ type: COM_BUFFER, retBuf: flmml.buffer }, [flmml.buffer[0].buffer, flmml.buffer[1].buffer]);
+			// return true;
+		 }else{
+			   flmml.worker.postMessage({ type: COM_BUFFER, retBuf: null });
+			   console.log("buffer requested,processCount: "+processCount);
+			   // return false;
+		 } */
+		 /*
+		 console.log(procSamples + "/" + processCount);
+		 if(procSamples <= processCount){
+			 console.log("complete! smpls: "+ processCount);
+			 var audioBlob = isEncodeMP3 ? saveMP3.call(this, Math.min(procSamples, processCount)) : saveWAV.call(this, Math.min(procSamples, processCount));
+			 if(audioBlob)
+				 dlBlob.call(this, audioBlob, ".wav");
+		 } */
 	}
 	
 	function play() {
-		if(isFirst)
-			createFlMMLonHTML5(false);
+		var oldisPlay = isPlay;
 		isPlay = true;
+		if(isFirst || oldisPlay != true)
+			createFlMMLonHTML5();
+		// isRendering(false);
 		flmml.play(document.getElementById('mmltxt').value);
 	}
 	
 	function stop() {
-		if(!isFirst)	flmml.stop();
+		if(!isFirst){
+			flmml.stop();
+			// flmml.setBufferSize(8192);
+			// isRendering(false)
+		}
 	}
 	
 	function pause() {
@@ -137,19 +423,32 @@
 	}
 	
 	function save(isMP3) {
-		if(isFirstSave)
-			createFlMMLonHTML5(true);
+		var oldisPlay = isPlay;
 		isPlay = false;
+		if(isFirst || oldisPlay != false)
+			createFlMMLonHTML5();
+		// isRendering(true);
 		var elm = document.getElementById("mmlstatus");
 		elm.innerHTML = "compiling ...";
-		flmmlSave.save(document.getElementById('mmltxt').value, document.getElementById('mmlsavefilename').value, isMP3);
+		// flmml.play(document.getElementById('mmltxt').value, document.getElementById('mmlsavefilename').value, isMP3);
+		processCount = -1;
+		var filename = document.getElementById('mmlsavefilename').value;
+		saveFilename = filename == "" ? "flmml" : filename;
+		isEncodeMP3 = isMP3;
+		recData = [];
+	 	// flmml.setBufferSize(saveBufferSize, saveSampleRate);
+		flmml.play(document.getElementById('mmltxt').value);
+		// isRendering(false);
+		// var ext = isMP3 ? ".mp3" : ".wav";
+		// dlBlob(saveWav(recData),ext);
+		// isRendering(false);
 	}
 	
 	function saveStop() {
 		if(!isFirstSave)	flmmlSave.stop();
 	}
 	
-	function openUrl(url) {
+	var openUrl = function(url) {
 		imprtComment = "";
 		if(!isNaN(url) && url != ""){	// PIKOKAKIKO ID.
 			mmlDLUrl = "http://dic.nicovideo.jp/mml/" + url;
@@ -164,13 +463,14 @@
 			return;
 		}
 		if(true){
-		var yqlQuery = encodeURIComponent('env "http://www.datatables.org/alltables.env";select * from xClient where url="' + mmlDLUrl + '"');
+		// var yqlQuery = encodeURIComponent('env "store://datatables.org/alltableswithkeys";select * from xClient where url="' + mmlDLUrl + '"');
+		var yqlQuery = encodeURIComponent('use "http://www.datatables.org/xClient/xClient.xml" as xClient;select * from xClient where url="' + mmlDLUrl + '"');
 		var yqlUrl = 'http' + (/^https/.test(location.protocol)?'s':'') + '://query.yahooapis.com/v1/public/yql?q='
 						+ yqlQuery + '&format=json';
 		myxhr = new XMLHttpRequest();
 		myxhr.onload = function (e) {
-						var rcont = myxhr.response.query.results.resources.content;
 						// console.log(myxhr.response);
+						var rcont = myxhr.response.query.results.resources.content;
 						if(rcont)
 							onMMLLoaded({target: {result: imprtComment + rcont}});
 		};
@@ -179,7 +479,7 @@
 		myxhr.responseType = "json";
 		myxhr.send(null);
 		}
-	}
+	};
 	
 	function saveText(ext) {
 		var mmlTxt = document.getElementById("mmltxt").value;
@@ -845,8 +1145,8 @@
 	
 	var onBarMove = function (ev) {
 		var elmTxt = document.getElementById("mmltxt");
-		elmTxt.scrollTop += (ev.pageY - barOfsTop) * (elmTxt.scrollHeight / elmTxt.offsetHeight);
-		barOfsTop = ev.pageY;
+		elmTxt.scrollTop += (ev.pageY - this.barOfsTop) * (elmTxt.scrollHeight / elmTxt.offsetHeight);
+		this.barOfsTop = ev.pageY;
 		updateScrBar();
 		return false;
 	};
@@ -886,19 +1186,19 @@
 		
 		elmTxt.addEventListener("input", function(e) {
 			var cancelUpdt = function () {
-				if(typeof delayTimeoutID == "number") {
-					window.clearTimeout(delayTimeoutID);
-					delayTimeoutID = "";
+				if(typeof editor.delayTimeoutID == "number") {
+					window.clearTimeout(editor.delayTimeoutID);
+					editor.delayTimeoutID = "";
 				}
 			};
-			if(editorHltOn){
+			if(editor.editorHltOn){
 				var elmHlt = document.getElementById("mmlhighlight");
 				var elmTxt = document.getElementById("mmltxt");
-				if(editorHltDelayed){
+				if(editor.editorHltDelayed){
 					elmHlt.style.visibility = "hidden";
-					elmTxt.style.color = editorColor;
+					elmTxt.style.color = editor.editorColor;
 					cancelUpdt();
-					delayTimeoutID = window.setTimeout(function() {
+					editor.delayTimeoutID = window.setTimeout(function() {
 						updateHlt();
 					}, delayTimeMSec);
 				}else{
@@ -975,6 +1275,36 @@
 			}
 		});
 	};
+
+	extend(FlMMLWriter.prototype, {
+		openUrl: function(url) {
+			openUrl(url);
+		},
+		onMMLSelected: function(file) {
+			onMMLSelected(file);
+		},
+		saveText: function(ext) {
+			saveText(ext);
+		},
+		play: function() {
+			play();
+		},
+		stop: function() {
+			stop();
+		},
+		pause: function() {
+			pause();
+		},
+		onVolumeChange: function(vol) {
+			onVolumeChange(vol);
+		},
+		save: function(isMP3) {
+			save(isMP3);
+		}
+	});
 	
 	window.addEventListener("load", setHighlight);
 	window.addEventListener("load", setManualScroll);
+
+	return FlMMLWriter;
+}();

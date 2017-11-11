@@ -4,8 +4,15 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>FlMMLWriter</title>
-<script type="text/javascript" src="js/FlMMLonHTML5/flmmlonhtml5-raw-wavsave.js"></script>
+<script type="text/javascript" src="js/FlMMLonHTML5/flmmlonhtml5.js"></script>
 <script type="text/javascript" src="js/main/main.js"></script>
+<script type="text/javascript">
+"use strict";
+	var writer;
+	document.addEventListener("DOMContentLoaded", function () {
+		writer = new FlMMLWriter();
+	});
+</script>
 <link rel="stylesheet" type="text/css" href="css/main.css">
 </head>
 <body>
@@ -17,20 +24,20 @@
 	</div>
 	<br>
 	<textarea id="mmlwarn" cols=120 rows=6></textarea><br>
-	<input type="file" id="mmlfile" onChange="onMMLSelected()"></input>
-	<input type="button" id="mmlreload" value="Reload" onClick="onMMLSelected()">
-	<input type="button" id="mmlplay" value="Play" onClick="play()">
-	<input type="button" id="mmlpause" value="Pause" onClick="pause()">
-	<input type="button" id="mmlstop" value="Stop" onClick="stop()">
-	<input type="range" id="mmlvolume" min="0" max="127" step="1" value="100" onClick="onVolumeChange()">
+	<input type="file" id="mmlfile" onChange="writer.onMMLSelected(document.getElementById('mmlfile'))"></input>
+	<input type="button" id="mmlreload" value="Reload" onClick="writer.onMMLSelected(document.getElementById('mmlfile'))">
+	<input type="button" id="mmlplay" value="Play" onClick="writer.play()">
+	<input type="button" id="mmlpause" value="Pause" onClick="writer.pause()">
+	<input type="button" id="mmlstop" value="Stop" onClick="writer.stop()">
+	<input type="range" id="mmlvolume" min="0" max="127" step="1" value="100" onClick="writer.onVolumeChange(this.value)">
 	<span id="mmlstatus">Volume: 100</span><span>　　　　</span>
 	<span id="mmltime">00:00/00:00</span><br>
 	<span>URL/No.:</span><input type="text" id="mmlurl" value="">
-	<input type="button" id="mmlopenurl" value="Open" onClick="openUrl(document.getElementById('mmlurl').value)"><br>
+	<input type="button" id="mmlopenurl" value="Open" onClick="writer.openUrl(document.getElementById('mmlurl').value)"><br>
 	<span>Filename:</span><input type="text" id="mmlsavefilename" value="">
-	<input type="button" id="mmlsavetxt" value="Save(.mml)" onClick="saveText('.mml')">
-	<input type="button" id="mmlsave" value="Save(.wav)" onClick="save(false)">
-	<input type="button" id="mmlsavemp3" value="Save(.mp3)" onClick="save(true)"><br>
+	<input type="button" id="mmlsavetxt" value="Save(.mml)" onClick="writer.saveText('.mml')">
+	<input type="button" id="mmlsave" value="Save(.wav)" onClick="writer.save(false)">
+	<input type="button" id="mmlsavemp3" value="Save(.mp3)" onClick="writer.save(true)"><br>
 	<span>Editor:</span><br>
 	<span> Highlight:</span><input type="radio" id="hlt-off" name="editorHL" value="off" onClick="changeHltMode()"><span>off</span>
 	<input type="radio" id="hlt-delay" name="editorHL" value="delay" checked="checked" onClick="changeHltMode()"><span>delayed</span>
