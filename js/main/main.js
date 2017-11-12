@@ -296,7 +296,7 @@ var FlMMLWriter = function () {
 	
 	function createFlMMLonHTML5() {
 		if(isPlay){
-			flmml = new FlMMLonHTML5();
+			flmml = new FlMMLonHTML5(false,false,"flmmlworker.js");
 			flmml.oncompilecomplete = onCompileComplete;
 			flmml.onsyncinfo = onSyncInfo;
 			flmml.onbuffering = onBuffering;
@@ -305,17 +305,19 @@ var FlMMLWriter = function () {
 			// console.log(flmml);
 			// flmmlDefaultAudioProcess = flmml.onAudioProcessBinded;
 		}else{
-			flmml = new FlMMLonHTML5();
+			flmml = new FlMMLonHTML5(saveSampleRate,saveBufferSize,"flmmlworker.js");
 			flmml.oncompilecomplete = onCompileComplete;
 			flmml.onsyncinfo = onSyncInfo;
 			flmml.onbuffering = onBuffering;
 			flmml.oncomplete = onComplete;
 			isFirst = false;
+			/*
 			flmml.worker.postMessage({
 				type: COM_BOOT,
 				sampleRate: saveSampleRate,
 				bufferSize: saveBufferSize
 			});
+			*/
 			flmml.onAudioProcessBinded = onSaveProcess;
 		}
 	}
