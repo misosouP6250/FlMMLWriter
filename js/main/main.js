@@ -1186,19 +1186,19 @@ var FlMMLWriter = function () {
 		
 		elmTxt.addEventListener("input", function(e) {
 			var cancelUpdt = function () {
-				if(typeof editor.delayTimeoutID == "number") {
-					window.clearTimeout(editor.delayTimeoutID);
-					editor.delayTimeoutID = "";
+				if(typeof delayTimeoutID == "number") {
+					window.clearTimeout(delayTimeoutID);
+					delayTimeoutID = "";
 				}
 			};
-			if(editor.editorHltOn){
+			if(editorHltOn){
 				var elmHlt = document.getElementById("mmlhighlight");
 				var elmTxt = document.getElementById("mmltxt");
-				if(editor.editorHltDelayed){
+				if(editorHltDelayed){
 					elmHlt.style.visibility = "hidden";
-					elmTxt.style.color = editor.editorColor;
+					elmTxt.style.color = editorColor;
 					cancelUpdt();
-					editor.delayTimeoutID = window.setTimeout(function() {
+					delayTimeoutID = window.setTimeout(function() {
 						updateHlt();
 					}, delayTimeMSec);
 				}else{

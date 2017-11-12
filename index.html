@@ -39,8 +39,8 @@
 	<input type="button" id="mmlsave" value="Save(.wav)" onClick="writer.save(false)">
 	<input type="button" id="mmlsavemp3" value="Save(.mp3)" onClick="writer.save(true)"><br>
 	<span>Editor:</span><br>
-	<span> Highlight:</span><input type="radio" id="hlt-off" name="editorHL" value="off" onClick="changeHltMode()"><span>off</span>
-	<input type="radio" id="hlt-delay" name="editorHL" value="delay" checked="checked" onClick="changeHltMode()"><span>delayed</span>
-	<input type="radio" id="hlt-rt" name="editorHL" value="rt" onClick="changeHltMode()"><span>realtime</span><br>
+	<span> Highlight:</span><input type="radio" id="hlt-off" name="editorHL" value="off" onClick="writer.changeHltMode()"><span>off</span>
+	<input type="radio" id="hlt-delay" name="editorHL" value="delay" checked="checked" onClick="writer.changeHltMode()"><span>delayed</span>
+	<input type="radio" id="hlt-rt" name="editorHL" value="rt" onClick="writer.changeHltMode()"><span>realtime</span><br>
 </body>
 </html>
