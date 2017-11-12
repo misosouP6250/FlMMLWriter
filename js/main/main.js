@@ -137,6 +137,7 @@ var FlMMLWriter = function () {
 	}
 
 	function saveMP3 (procSmpl) {
+		/*
 		var encodeMP3 = function(samples, sampleRate, ch) {
 			mp3worker.postMessage({ cmd: 'init', config:{
 				channels: ch,
@@ -183,6 +184,115 @@ var FlMMLWriter = function () {
 		// this.addEventListener("encodecompleted", encodedMP3Binded);
 		encodeMP3(mergeBuffers(recData, procSmpl), saveSampleRate, 2);
 		
+		return false;
+		*/
+		/*
+		var mp3Data = [];
+		
+		var mp3encoder = new lamejs.Mp3Encoder(2, saveSampleRate, 192);
+
+			var redgain = 1.0;
+			for (var i = 0; i < recData.length; i++) {
+				for (var j = 0; j < recData[i].length; j++) {
+					if(recData[i][j] > redgain)
+						redgain = recData[i][j];
+				}
+			}
+
+			if(redgain != 1.0)
+				redgain *= 1.77;
+			
+			console.log(redgain);
+
+			var samplesL = new Int16Array(procSmpl);
+			var samplesR = new Int16Array(procSmpl);
+			var sampleIdx = 0;
+			for (var i = 0; i < recData.length; i++) {
+				for (var j = 0; j < recData[i].length; j+=2) {
+					if(sampleIdx > procSmpl)
+						break;
+					samplesL[sampleIdx] = recData[i][j] < 0 ? (recData[i][j] / redgain * 0x8000 - 0.5) : (recData[i][j] / redgain * 0x7FFF + 0.5);
+					samplesR[sampleIdx] = recData[i][j+1] < 0 ? (recData[i][j+1] / redgain * 0x8000 - 0.5) : (recData[i][j+1] / redgain * 0x7FFF + 0.5);
+					sampleIdx++;
+				}
+			}
+			var sampleBlockSize = 4608;
+			for (var i = 0; i < procSmpl; i+=sampleBlockSize) {
+				var leftChunk = samplesL.subarray(i, i+sampleBlockSize);
+				var rightChunk = samplesR.subarray(i, i+sampleBlockSize);
+				var mp3buf = mp3encoder.encodeBuffer(leftChunk, rightChunk);
+				if(mp3buf.length > 0)
+					mp3Data.push(mp3buf);
+			}
+		
+		var mp3buf = mp3encoder.flush();
+		if(mp3buf.length > 0) {
+			mp3Data.push(mp3buf);
+		}
+		console.log(mp3Data);
+		var audioBlob = new Blob(mp3Data, { type: 'audio/x-mpeg-3' });
+		dlBlob(audioBlob, ".mp3");
+		*/
+		var encodeMP3 = function(samples, sampleRate, ch) {
+			mp3worker.postMessage({ cmd: 'init', config:{
+				blockSize: 4608,
+				bitRate: 192
+			}});
+			mp3worker.postMessage({ cmd: 'encode',
+				channels: ch,
+				samples: procSmpl,
+				sampleRate: sampleRate,
+				buf: samples
+			});
+			
+			mp3worker.postMessage({ cmd: 'finish' });
+			mp3worker.onmessage = (function(e) {
+				if(e.data.cmd == 'end') {
+						var encodedMp3 = e.data.buf;
+						var audioBlob = new Blob(encodedMp3, { type: 'audio/x-mpeg-3' });
+						dlBlob(audioBlob, ".mp3");
+						encodedMp3 = [];
+						onEncodeComplete && onEncodeComplete();
+						//  this.trigger("mp3encodecompleted");
+				}else if(e.data.cmd == 'progress') {
+					onEncoding && onEncoding(Math.floor(e.data.progress * 100));
+				}
+			}).bind(this);
+			onEncodeStart && onEncodeStart();
+			// this.trigger("mp3encodestart");
+		};
+
+		var mergeBuffers = function(audioData, numSample) {
+			var redgain = 1.0;
+			for (var i = 0; i < audioData.length; i++) {
+				for (var j = 0; j < audioData[i].length; j++) {
+					if(audioData[i][j] > redgain)
+						redgain = audioData[i][j];
+				}
+			}
+
+			if(redgain !== 1.0) {
+				redgain *= 1.92;
+			}
+
+			var samples = new Float32Array(numSample*2);
+			// var samplesR = new Float32Array(numSample);
+			var sampleIdx = 0;
+			for (var i = 0; i < audioData.length; i++) {
+				for (var j = 0; j < audioData[i].length; j+=2) {
+					samples[sampleIdx*2] = audioData[i][j] / redgain;
+					samples[sampleIdx*2+1] = audioData[i][j+1] / redgain;
+					if(++sampleIdx > numSample)
+						return samples;
+				}
+			}
+			return samples;
+		};
+
+		console.log(recData);
+		
+		encodeMP3(mergeBuffers(recData, procSmpl), saveSampleRate, 2);
+
 		return false;
 	}
 
@@ -272,20 +382,30 @@ var FlMMLWriter = function () {
 		elm.innerHTML = "encoding to MP3 ...";
 	}
 
+	function onEncoding(e) {
+		if(e === 100){
+			onVolumeChange();
+		}else{
+			var elm = document.getElementById("mmlstatus");
+			elm.innerHTML = "encoding [" + e + "%]";
+		}
+	}
+
 	function onEncodeComplete() {
 		onVolumeChange();
-		var encodedBlob = new Blob([encodedArray], { type: 'audio/x-mpeg-3' });
-		dlBlob(encodedBlob, ".mp3");
+		// var encodedBlob = new Blob([encodedArray], { type: 'audio/x-mpeg-3' });
+		// dlBlob(encodedBlob, ".mp3");
 	}
 
 	function onComplete() {
 		if(!isPlay) {
 			console.log("complete! smpls: "+ processCount);
 			var audioBlob = isEncodeMP3 ? saveMP3.call(this, Math.min(procSamples, processCount)) : saveWav.call(this, Math.min(procSamples, processCount));
-			if(audioBlob)
+			if(audioBlob) {
 				dlBlob.call(this, audioBlob, ".wav");
-			recData = [];
-			isRendering(false);
+				recData = [];
+			}
+			// isRendering(false);
 			// flmml.setBufferSize(8192);
 		}
 	}
@@ -368,6 +488,7 @@ var FlMMLWriter = function () {
 		flmml.addEventListener("complete", completeRendering);
 	}
 */
+/*
 	function resetBuffer_Rate() {
 		var AudioCtx = window.AudioContext || window.webkitAudioContext;
 		var actx = new AudioCtx();
@@ -396,6 +517,7 @@ var FlMMLWriter = function () {
 			// console.log(flmmlDefaultAudioProcess);
 		}
 	}
+*/
 
 	function onSaveProcess() {
 		var cback = function() {

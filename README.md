@@ -54,4 +54,4 @@ FlMMLWriterはWEBブラウザ上でFlMML(ピコカキコ) MMLを書くための�
 ## Thanks
 ・[FlMML](https://flmml.codeplex.com/)  
 ・[FlMML on HTML5](https://github.com/carborane3/FlMMLonHTML5)  
-・[libmp3lame.js](https://github.com/kobigurk/libmp3lame-js)  
+・[lamejs](https://github.com/zhuker/lamejs)  

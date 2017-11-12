@@ -1,35 +1,55 @@
-importScripts('../libmp3lame.js/libmp3lame.min.js');
+"use strict";
+importScripts('../lamejs/lame.min.js');
 
-var mp3codec;
+var mp3Encoder,
+	config, dataBuffer, samplesL, samplesR;
 
 self.onmessage = function(e) {
 	switch (e.data.cmd) {
 	case 'init':
-		if (!e.data.config) {
-			e.data.config = { };
-		}
-		mp3codec = Lame.init();
-		Lame.set_mode(mp3codec, e.data.config.mode || Lame.JOINT_STEREO);
-		Lame.set_num_channels(mp3codec, e.data.config.channels || 2);
-		Lame.set_in_samplerate(mp3codec, e.data.config.insamplerate || 44100);
-		Lame.set_out_samplerate(mp3codec, e.data.config.samplerate || 44100);
-		if(e.data.config.vbr)		Lame.set_VBR(mp3codec, e.data.config.vbr);
-		if(e.data.config.vbr_q)		Lame.set_VBR_q(mp3codec, e.data.config.vbr_q || 2);
-		if(e.data.config.vbr_mean)	Lame.set_VBR_mean_bitrate_kbps(mp3codec, e.data.config.vbr_min || 32);
-		if(e.data.config.vbr_min)	Lame.set_VBR_min_bitrate_kbps(mp3codec, e.data.config.vbr_min || 32);
-		if(e.data.config.vbr_max)	Lame.set_VBR_max_bitrate_kbps(mp3codec, e.data.config.vbr_max || 320);
-		if(e.data.config.bitrate)	Lame.set_bitrate(mp3codec, e.data.config.bitrate || 128);
-		Lame.init_params(mp3codec);
+		config = e.data.config || {};
+		if(!config.blockSize)	config.blockSize = 1152;
+		dataBuffer = [];
 		break;
 	case 'encode':
-		var mp3data = Lame.encode_buffer_ieee_float(mp3codec, e.data.bufL, e.data.bufR);
-		self.postMessage({cmd: 'data', buf: mp3data.data});
+		samplesL = e.data.channels === 1 ? e.data.buf : new Int16Array(e.data.samples);
+		samplesR = e.data.channels === 2 ? new Int16Array(e.data.samples) : undefined;
+		// var sampleIdx = 0;
+		var buf = e.data.buf;
+		if(e.data.channels > 1) {
+			for (var i = 0; i < buf.length; i+=2) {
+					samplesL[i/2] = buf[i] < 0 ? (buf[i] * 0x8000 - 0.5) : (buf[i] * 0x7FFF + 0.5);
+					samplesR[i/2] = buf[i+1] < 0 ? (buf[i+1] * 0x8000 - 0.5) : (buf[i+1] * 0x7FFF + 0.5);
+					// sampleIdx++;
+			}
+		}
+		
+		mp3Encoder = new lamejs.Mp3Encoder(e.data.channels, e.data.sampleRate, config.bitRate || 128);
+		
+		var remain = samplesL.length;
+		var blockSize = config.blockSize;
+		for (var i = 0; remain >= blockSize; i+=blockSize) {
+			var leftChunk = samplesL.subarray(i, i+blockSize);
+			var rightChunk;
+			if(samplesR)
+				rightChunk = samplesR.subarray(i, i+blockSize);
+			var mp3buf = mp3Encoder.encodeBuffer(leftChunk, rightChunk);
+			if(mp3buf.length > 0)
+				dataBuffer.push(mp3buf);
+			remain -= blockSize;
+			self.postMessage({
+				cmd: "progress",
+				progress: (1 - remain / samplesL.length)
+			});
+		}
+
 		break;
 	case 'finish':
-		var mp3data = Lame.encode_flush(mp3codec);
-		self.postMessage({cmd: 'end', buf: mp3data.data});
-		Lame.close(mp3codec);
-		mp3codec = null;
+		var mp3buf = mp3Encoder.flush();
+		if(mp3buf.length > 0)
+			dataBuffer.push(mp3buf);
+		self.postMessage({cmd: 'end', buf: dataBuffer});
+		dataBuffer = [];
 		break;
 	}
 };
