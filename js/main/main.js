@@ -265,7 +265,7 @@ var FlMMLWriter = function () {
 			flmml.onAudioProcessBinded = onSaveProcess;
 		}
 	}
-
+/*
 	function saveSound() {
 		if (flmml.gain || flmml.scrProc || flmml.oscDmy) return;
 		
@@ -311,7 +311,7 @@ var FlMMLWriter = function () {
 						
 		flmml.addEventListener("complete", completeRendering);
 	}
-
+*/
 	function resetBuffer_Rate() {
 		var AudioCtx = window.AudioContext || window.webkitAudioContext;
 		var actx = new AudioCtx();
