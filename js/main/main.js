@@ -340,11 +340,11 @@ var FlMMLWriter = function () {
 		// var volVal = vol.value;
 		if(isNaN(vol))
 			vol = nowVol;
-		if(isPlay)
+		nowVol = vol;
+		if(flmml)
 			flmml.setMasterVolume(parseInt(vol));
 		var elm = document.getElementById("mmlstatus");
 		elm.innerHTML = "Volume: " + vol;
-		nowVol = vol;
 	}
 	
 	function onCompileComplete() {
