@@ -344,6 +344,7 @@ var FlMMLWriter = function () {
 			flmml.setMasterVolume(parseInt(vol));
 		var elm = document.getElementById("mmlstatus");
 		elm.innerHTML = "Volume: " + vol;
+		nowVol = vol;
 	}
 	
 	function onCompileComplete() {
