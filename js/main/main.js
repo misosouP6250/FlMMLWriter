@@ -50,6 +50,8 @@ var FlMMLWriter = function () {
 	var saveFilename = "flmml";
 	var isEncodeMP3 = false;
 	var oldBufferReady = false;
+	var mp3worker = new Worker("js/FlMMLonHTML5/encoder.js");
+	var encodedArray;
 
 	// function flmmlDefaultPlaySound(){};
 	var flmmlDefaultPlaySound;
@@ -132,6 +134,56 @@ var FlMMLWriter = function () {
 		var audioBlob = new Blob([dataview], { type: 'audio/wav' });
 
 		return audioBlob;
+	}
+
+	function saveMP3 (procSmpl) {
+		var encodeMP3 = function(samples, sampleRate, ch) {
+			mp3worker.postMessage({ cmd: 'init', config:{
+				channels: ch,
+				insamplerate: sampleRate,
+				samplerate: sampleRate,
+				bitrate: 192
+			}});
+			mp3worker.postMessage({ cmd: 'encode', bufL: new Float32Array(samples[0]), bufR: new Float32Array(samples[1]) });
+			
+			mp3worker.postMessage({ cmd: 'finish' });
+			mp3worker.onmessage = (function(e) {
+				if(e.data.cmd == 'data') {
+						encodedArray = e.data.buf;
+						onEncodeComplete && onEncodeComplete();
+						//  this.trigger("mp3encodecompleted");
+				}
+			}).bind(this);
+			onEncodeStart && onEncodeStart();
+			// this.trigger("mp3encodestart");
+		};
+
+		var mergeBuffers = function(audioData, numSample) {
+			var redgain = 1.0;
+			for (var i = 0; i < audioData.length; i++) {
+				for (var j = 0; j < audioData[i].length; j++) {
+					if(audioData[i][j] > redgain)
+						redgain = audioData[i][j];
+				}
+			}
+
+			var samplesL = new Float32Array(numSample);
+			var samplesR = new Float32Array(numSample);
+			var sampleIdx = 0;
+			for (var i = 0; i < audioData.length; i++) {
+				for (var j = 0; j < audioData[i].length; j+=2) {
+					samplesL[sampleIdx] = audioData[i][j] / redgain;
+					samplesR[sampleIdx] = audioData[i][j+1] / redgain;
+					if(++sampleIdx > numSample)
+						return [samplesL, samplesR];
+				}
+			}
+			return [samplesL, samplesR];
+		};
+		// this.addEventListener("encodecompleted", encodedMP3Binded);
+		encodeMP3(mergeBuffers(recData, procSmpl), saveSampleRate, 2);
+		
+		return false;
 	}
 
 	function dlBlob(blob, ext) {
@@ -222,6 +274,8 @@ var FlMMLWriter = function () {
 
 	function onEncodeComplete() {
 		onVolumeChange();
+		var encodedBlob = new Blob([encodedArray], { type: 'audio/x-mpeg-3' });
+		dlBlob(encodedBlob, ".mp3");
 	}
 
 	function onComplete() {
@@ -335,7 +389,7 @@ var FlMMLWriter = function () {
 			// console.log(onSaveProcess);
 		} else {
 			// console.log(String(FlMMLonHTML5.audioCtx.sampleRate) +" "+ saveBufferSize);
-			resetBuffer_Rate();
+			// resetBuffer_Rate();
 			flmml.onAudioProcessBinded = flmmlDefaultAudioProcess;
 			// console.log(flmmlDefaultAudioProcess);
 		}
