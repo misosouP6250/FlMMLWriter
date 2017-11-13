@@ -229,32 +229,49 @@ span#mmlhighlight {
 	white-space: pre-wrap;
 	word-wrap: break-word;
 	overflow: hidden;
-	padding: 4px;
+	padding: 8px;
 	margin: 0;
+	top: 0;
+	left: 0;
+	border: 1px none #000;
+}
+
+div#mmlhighlightwrap {
+	pointer-events: none;
+	position: absolute;
+	margin: 0;
+	padding: 8px;
+	top: 0;
+	left: 0;
+	/* display: inline-block; */
+	overflow: hidden;
+	font-size: 16px;
+	color: #EEE;
 }
 
 /* テキストエリア */
 textarea#mmltxt {
+	-webkit-appearance: none;
 	resize: none;
 	background-color: #222218; /* 背景色 */
-	border: 1px solid #888;
+	/* border: 1px solid #888; */
+	caret-color: #AABDAA;
+	bottom: 0;
 }
 
 /* Warningエリア */
 textarea#mmlwarn {
-	resize: vartical;
+	resize: vertical;
 	background-color: #222218;
 	border: 1px solid #888;
 	overflow: auto;
-	width: 90vw;
+	width: 100%;
 }
 
 /* ハイライト */
-/*
 span#mmlhighlight {
-	padding: 4px;
+	border: 1px none #000;
 }
-*/
 
 /* span 改行設定 */
 span {
@@ -274,4 +291,26 @@ div#scrollBar {
 /* スクロールバー hover */
 div#scrollBar:hover {
 	opacity: 0.8;
+}
+
+/* コントロール */
+div#ctrls > #ctrl-right {
+	float: left;
+}
+
+div#ctrls > #ctrl-left {
+	float: left;
+}
+
+div#ctrls > #ctrl-warn {
+	float: right;
+}
+
+div#ctrls::after {
+	clear: both;
+}
+
+/* テキスト */
+input#mmlurl, input#mmlsavefilename {
+	width: 30%;
 }

@@ -340,11 +340,11 @@ var FlMMLWriter = function () {
 		// var volVal = vol.value;
 		if(isNaN(vol))
 			vol = nowVol;
-		if(isPlay)
+		nowVol = vol;
+		if(flmml)
 			flmml.setMasterVolume(parseInt(vol));
 		var elm = document.getElementById("mmlstatus");
 		elm.innerHTML = "Volume: " + vol;
-		nowVol = vol;
 	}
 	
 	function onCompileComplete() {
@@ -1102,7 +1102,7 @@ var FlMMLWriter = function () {
 				case 'e':	case 'f':	case 'g':
 				case 'A':	case 'B':	case 'C':	case 'D':
 				case 'E':	case 'F':	case 'G':				// 音符
-					var ret = buf.search(/[^a-gA-G0-9\+\-\.\s]/);	// 音符系以外の文字
+					var ret = buf.search(/[^a-gA-G0-9\+#\-\.\s]/);	// 音符系以外の文字
 					if(ret != -1){
 						strCnt = ret;
 						chr = buf.slice(0, strCnt);
@@ -1340,14 +1340,15 @@ var FlMMLWriter = function () {
 		
 		changeHltMode();
 		
-		elmTxt.style.WebkitAppearance = "none";
-		elmTxt.style.top = "10px";
-		elmTxt.style.left = "10px";
+		// elmTxt.style.WebkitAppearance = "none";
+		// elmTxt.style.top = "10px";
+		// elmTxt.style.left = "10px";
 		elmTxt.style.width = "90vw";
 		elmTxt.style.height = "70vh";
-		elmTxt.style.padding = "4px";
+		// elmTxt.style.padding = "4px";
 		
 
+		/*
 		elmHlt.style.WebkitAppearance = "none";
 		elmHlt.style.pointerEvents = "none";
 		elmHlt.style.MosUserSelect = "none";
@@ -1355,13 +1356,15 @@ var FlMMLWriter = function () {
 		elmHlt.style.WebkitUserSelect = "none";
 		elmHlt.style.top = "0";
 		elmHlt.style.left = "0";
+		*/
 		elmHlt.style.width = elmTxt.style.width;
-		elmHlt.style.padding = "4px";
+		// elmHlt.style.height = elmTxt.style.height;
+		// elmHlt.style.padding = "4px";
 		
 		elmHltWrap.style.width = elmTxt.style.width;
 		elmHltWrap.style.height = elmTxt.style.height;
-		elmHltWrap.style.padding = "4px";
-		elmHltWrap.style.color = "#EEE";
+		// elmHltWrap.style.padding = "4px";
+		// elmHltWrap.style.color = "#EEE";
 		
 		elmTxt.addEventListener("input", function(e) {
 			var cancelUpdt = function () {
@@ -1476,6 +1479,9 @@ var FlMMLWriter = function () {
 		},
 		onVolumeChange: function(vol) {
 			onVolumeChange(vol);
+		},
+		changeHltMode: function() {
+			changeHltMode();
 		},
 		save: function(isMP3) {
 			save(isMP3);
