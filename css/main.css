@@ -261,7 +261,7 @@ textarea#mmltxt {
 
 /* Warningエリア */
 textarea#mmlwarn {
-	resize: vartical;
+	resize: vertical;
 	background-color: #222218;
 	border: 1px solid #888;
 	overflow: auto;
