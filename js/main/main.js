@@ -1102,7 +1102,7 @@ var FlMMLWriter = function () {
 				case 'e':	case 'f':	case 'g':
 				case 'A':	case 'B':	case 'C':	case 'D':
 				case 'E':	case 'F':	case 'G':				// 音符
-					var ret = buf.search(/[^a-gA-G0-9\+\-\.\s]/);	// 音符系以外の文字
+					var ret = buf.search(/[^a-gA-G0-9\+#\-\.\s]/);	// 音符系以外の文字
 					if(ret != -1){
 						strCnt = ret;
 						chr = buf.slice(0, strCnt);
