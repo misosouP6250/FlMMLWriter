@@ -1343,8 +1343,8 @@ var FlMMLWriter = function () {
 		// elmTxt.style.WebkitAppearance = "none";
 		// elmTxt.style.top = "10px";
 		// elmTxt.style.left = "10px";
-		elmTxt.style.width = "90vw";
-		elmTxt.style.height = "70vh";
+		elmTxt.style.width = "100%";
+		elmTxt.style.height = "100%";
 		// elmTxt.style.padding = "4px";
 		
 

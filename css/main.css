@@ -3,6 +3,44 @@
 /* google fonts */
 @import url(https://fonts.googleapis.com/css?family=Roboto+Mono);
 
+/* body */
+body {
+	margin: 0;
+	padding: 0;
+	width: 100vw;
+	overflow: hidden;
+	color: #DDD;
+	background-color: #2C2F2C;
+}
+
+/* header */
+div#header {
+	position: relative;
+	top: 0;
+	left: 0;
+	margin: 0;
+	padding: 4px;
+	width: 100vw;
+	height: 10vh;
+	box-sizing: border-box;
+	overflow: hidden;
+}
+
+/* editor */
+div#editor {
+	position: relative;
+	height: 75vh;
+	box-sizing: border-box;
+}
+
+/* footer */
+div#footer {
+	position: relative;
+	margin: 0;
+	padding: 0;
+	height: 15vh;
+}
+
 /* 音符 [a-gA-G][%]?[0-9]* */
 span.note {
 	/* color: #FFA000; */
@@ -233,7 +271,8 @@ span#mmlhighlight {
 	margin: 0;
 	top: 0;
 	left: 0;
-	border: 1px none #000;
+	border: 0 none #000;
+	box-sizing: border-box;
 }
 
 div#mmlhighlightwrap {
@@ -247,6 +286,7 @@ div#mmlhighlightwrap {
 	overflow: hidden;
 	font-size: 16px;
 	color: #EEE;
+	box-sizing: border-box;
 }
 
 /* テキストエリア */
@@ -261,11 +301,12 @@ textarea#mmltxt {
 
 /* Warningエリア */
 textarea#mmlwarn {
-	resize: vertical;
+	resize: none;
 	background-color: #222218;
-	border: 1px solid #888;
+	border: 0 none #888;
 	overflow: auto;
 	width: 100%;
+	height: 100%;
 }
 
 /* ハイライト */
@@ -282,8 +323,10 @@ span {
 /* スクロールバー */
 div#scrollBar {
 	background-color: #777;
-	margin: 4px;
+	margin: 8px;
+	/* padding: 12px; */
 	width: 8px;
+	right: 8px;
 	border-radius: 4px;
 	opacity: 0.5;
 }
@@ -294,23 +337,56 @@ div#scrollBar:hover {
 }
 
 /* コントロール */
+div#ctrls-header{
+	position: relative;
+	top:0;
+	left:0;
+	width: 88%;
+}
+
+div#ctrls {
+	position: relative;
+	height: 100%;
+}
+
 div#ctrls > #ctrl-right {
 	float: left;
 }
 
 div#ctrls > #ctrl-left {
 	float: left;
+	padding: 4px;
+	height: 100%;
+	box-sizing: border-box;
 }
 
 div#ctrls > #ctrl-warn {
-	float: right;
+	float: left;
+	height: 100%;
 }
 
 div#ctrls::after {
 	clear: both;
 }
 
-/* テキスト */
+/* テキストインプット */
 input#mmlurl, input#mmlsavefilename {
-	width: 30%;
+	border: 1px solid #888;
+	background-color: #555;
+	color: #DDD;
+	width: 8%;
+}
+
+/* タイトル */
+div#title-header {
+	float: left;
+	width: 12%;
+}
+
+div#title-header::after {
+	clear: both;
+}
+
+span#title-font {
+	font-size: 14pt;
 }
