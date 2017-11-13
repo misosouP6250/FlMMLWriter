@@ -17,19 +17,19 @@
 <link rel="stylesheet" type="text/css" href="css/main.css">
 </head>
 <body>
-	<div style="display: inline-block; position: relative">
+	<div style="position: relative">
 		<textarea id="mmltxt" spellcheck="false"></textarea>
 		<div id="mmlhighlightwrap" style="bottom: 0; right: 0">
 			<span id="mmlhighlight" style="position:absolute; top: 0; left: 0; display: inline-block;"></span>
 			<div id="scrollBar"></div>
 		</div>
 	</div>
-	<div style="position: relative">
+	<!-- <div style="position: relative">
 		<textarea id="mmlwarn" cols=120 rows=6 placeholder="== no warnings =="></textarea>
-	</div>
+	</div> -->
 	<div style="display: inline-block; width: 90vw">
 		<div id="ctrls">
-			<div id="ctrl-left" style="text-align: left; width: 60%">
+			<div id="ctrl-left" style="text-align: left; width: 40%">
 				<input type="range" id="mmlvolume" min="0" max="127" step="1" value="100" onClick="writer.onVolumeChange(this.value)">
 				<span id="mmlstatus">Volume: 100</span><span>　　　</span>
 				<span id="mmltime">00:00/00:00</span><br>
@@ -37,7 +37,7 @@
 				<input type="button" id="mmlpause" value="Pause" onClick="writer.pause()">
 				<input type="button" id="mmlstop" value="Stop" onClick="writer.stop()">
 			</div>
-			<div id="ctrl-right" style="text-align: left; width: 40%">
+			<div id="ctrl-right" style="text-align: left; width: 30%">
 				<input type="file" id="mmlfile" onChange="writer.onMMLSelected(document.getElementById('mmlfile'))"></input>
 				<input type="button" id="mmlreload" value="Reload" onClick="writer.onMMLSelected(document.getElementById('mmlfile'))">
 				<br>
@@ -51,6 +51,9 @@
 				<span> Highlight:</span><input type="radio" id="hlt-off" name="editorHL" value="off" onClick="writer.changeHltMode()"><span>off</span>
 				<input type="radio" id="hlt-delay" name="editorHL" value="delay" checked="checked" onClick="writer.changeHltMode()"><span>delayed</span>
 				<input type="radio" id="hlt-rt" name="editorHL" value="rt" onClick="writer.changeHltMode()"><span>realtime</span><br>
+			</div>
+			<div id="ctrl-warn" style="text-align: left; width: 30%">
+				<textarea id="mmlwarn" placeholder="== no warnings =="></textarea>
 			</div>
 		</div>
 	</div>

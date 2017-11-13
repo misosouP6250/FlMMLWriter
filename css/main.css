@@ -265,7 +265,7 @@ textarea#mmlwarn {
 	background-color: #222218;
 	border: 1px solid #888;
 	overflow: auto;
-	width: 90vw;
+	width: 100%;
 }
 
 /* ハイライト */
@@ -295,11 +295,15 @@ div#scrollBar:hover {
 
 /* コントロール */
 div#ctrls > #ctrl-right {
-	float: right;
+	float: left;
 }
 
 div#ctrls > #ctrl-left {
 	float: left;
+}
+
+div#ctrls > #ctrl-warn {
+	float: right;
 }
 
 div#ctrls::after {
