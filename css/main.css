@@ -238,6 +238,7 @@ textarea#mmltxt {
 	resize: none;
 	background-color: #222218; /* 背景色 */
 	border: 1px solid #888;
+	caret-color: #AABDAA;
 }
 
 /* Warningエリア */
