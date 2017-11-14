@@ -11,6 +11,10 @@ body {
 	overflow: hidden;
 	color: #DDD;
 	background-color: #2C2F2C;
+
+	/* 文字アンチエイリアス設定 */
+	-webkit-font-smoothing: subpixel-antialiased;
+	-moz-osx-font-smoothing: unset;
 }
 
 /* header */
