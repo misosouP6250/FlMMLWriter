@@ -334,6 +334,15 @@ var FlMMLWriter = function () {
 		elmHlt.innerHTML = highlightFlMML(e.target.result);
 		updateScrBar();
 	}
+
+	function setMMLText(txt) {
+		var elm = document.getElementById("mmltxt");
+		var elmHlt = document.getElementById("mmlhighlight");
+
+		elm.value = txt;
+		elmHlt.innerHTML = highlightFlMML(txt);
+		updateScrBar();
+	}
 	
 	function onVolumeChange(vol) {
 		// var vol = document.getElementById("mmlvolume").value;
@@ -1343,8 +1352,8 @@ var FlMMLWriter = function () {
 		// elmTxt.style.WebkitAppearance = "none";
 		// elmTxt.style.top = "10px";
 		// elmTxt.style.left = "10px";
-		elmTxt.style.width = "90vw";
-		elmTxt.style.height = "70vh";
+		elmTxt.style.width = "100%";
+		elmTxt.style.height = "100%";
 		// elmTxt.style.padding = "4px";
 		
 
@@ -1464,6 +1473,9 @@ var FlMMLWriter = function () {
 		},
 		onMMLSelected: function(file) {
 			onMMLSelected(file);
+		},
+		setMMLText: function(file) {
+			setMMLText(file);
 		},
 		saveText: function(ext) {
 			saveText(ext);

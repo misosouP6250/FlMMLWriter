@@ -17,46 +17,55 @@
 <link rel="stylesheet" type="text/css" href="css/main.css">
 </head>
 <body>
-	<div style="position: relative">
+	<!-- header -->
+	<div id="header">
+		<div id="title-header">
+			<img src="img/logo.png" height="240">
+		</div>
+		<div id="ctrls-header">
+			<input type="file" id="mmlfile" onChange="writer.onMMLSelected(document.getElementById('mmlfile'))"></input>
+			<img src="img/reload.png" alt="reload" height="20" width="20" id="mmlreload" value="Reload" onclick="writer.onMMLSelected(document.getElementById('mmlfile'))">
+			<input type="text" id="mmlurl" value="" placeholder="URL/No.">
+			<img src="img/open-cloud.png" alt="open URL/ID" height="20" width="20" id="mmlopenurl" value="Open" onclick="writer.openUrl(document.getElementById('mmlurl').value)">
+			<input type="text" id="mmlsavefilename" value="" placeholder="Filename">
+			<img src="img/save-mml.png" height="20" width="33.75" id="mmlsavetxt" value="Save(.mml)" onclick="writer.saveText('.mml')">
+			<img src="img/save-wav.png" height="20" width="33.75"  id="mmlsave" value="Save(.wav)" onclick="writer.save(false)">
+			<img src="img/save-mp3.png" height="20" width="33.75"  id="mmlsavemp3" value="Save(.mp3)" onclick="writer.save(true)">
+			<span> Highlight:</span><input type="radio" id="hlt-off" name="editorHL" value="off" onClick="writer.changeHltMode()"><span>off</span>
+			<input type="radio" id="hlt-delay" name="editorHL" value="delay" checked="checked" onClick="writer.changeHltMode()"><span>delayed</span>
+			<input type="radio" id="hlt-rt" name="editorHL" value="rt" onClick="writer.changeHltMode()"><span>realtime</span><br>
+		</div>
+	</div>
+	<!-- header end -->
+	<!-- editor -->
+	<div id="editor">
 		<textarea id="mmltxt" spellcheck="false"></textarea>
 		<div id="mmlhighlightwrap" style="bottom: 0; right: 0">
 			<span id="mmlhighlight" style="position:absolute; top: 0; left: 0; display: inline-block;"></span>
 			<div id="scrollBar"></div>
 		</div>
 	</div>
+	<!-- editor end -->
 	<!-- <div style="position: relative">
 		<textarea id="mmlwarn" cols=120 rows=6 placeholder="== no warnings =="></textarea>
 	</div> -->
-	<div style="display: inline-block; width: 90vw">
+	<!-- footer -->
+	<div id="footer">
 		<div id="ctrls">
-			<div id="ctrl-left" style="text-align: left; width: 40%">
+			<div id="ctrl-left" style="text-align: left; width: 63%">
 				<input type="range" id="mmlvolume" min="0" max="127" step="1" value="100" onClick="writer.onVolumeChange(this.value)">
 				<span id="mmlstatus">Volume: 100</span><span>　　　</span>
 				<span id="mmltime">00:00/00:00</span><br>
-				<input type="button" id="mmlplay" value="Play" onClick="writer.play()">
-				<input type="button" id="mmlpause" value="Pause" onClick="writer.pause()">
-				<input type="button" id="mmlstop" value="Stop" onClick="writer.stop()">
+				<img src="img/pause.png" height="24" width="24" id="mmlpause" value="Play" onClick="writer.pause()">
+				<img src="img/play.png" height="24" width="24" id="mmlplay" value="Pause" onClick="writer.play()">
+				<img src="img/stop.png" height="24" width="24" id="mmlstop" value="Stop" onClick="writer.stop()">
 			</div>
-			<div id="ctrl-right" style="text-align: left; width: 30%">
-				<input type="file" id="mmlfile" onChange="writer.onMMLSelected(document.getElementById('mmlfile'))"></input>
-				<input type="button" id="mmlreload" value="Reload" onClick="writer.onMMLSelected(document.getElementById('mmlfile'))">
-				<br>
-				<input type="text" id="mmlurl" value="" placeholder="URL/No.">
-				<input type="button" id="mmlopenurl" value="Open" onClick="writer.openUrl(document.getElementById('mmlurl').value)"><br>
-				<input type="text" id="mmlsavefilename" value="" placeholder="Filename">
-				<input type="button" id="mmlsavetxt" value="Save(.mml)" onClick="writer.saveText('.mml')">
-				<input type="button" id="mmlsave" value="Save(.wav)" onClick="writer.save(false)">
-				<input type="button" id="mmlsavemp3" value="Save(.mp3)" onClick="writer.save(true)"><br>
-				<span>Options:</span><br>
-				<span> Highlight:</span><input type="radio" id="hlt-off" name="editorHL" value="off" onClick="writer.changeHltMode()"><span>off</span>
-				<input type="radio" id="hlt-delay" name="editorHL" value="delay" checked="checked" onClick="writer.changeHltMode()"><span>delayed</span>
-				<input type="radio" id="hlt-rt" name="editorHL" value="rt" onClick="writer.changeHltMode()"><span>realtime</span><br>
-			</div>
-			<div id="ctrl-warn" style="text-align: left; width: 30%">
+			<div id="ctrl-warn" style="text-align: left; width: 37%">
 				<textarea id="mmlwarn" placeholder="== no warnings =="></textarea>
 			</div>
 		</div>
+		<!-- <a target="blanc" href="https://github.com/misosouP6250/FlMMLWriter/blob/master/README.md">usage</a> -->
 	</div>
-	<a target="blanc" href="https://github.com/misosouP6250/FlMMLWriter/blob/master/README.md">usage</a><br>
+	<!-- footer end -->
 </body>
 </html>
