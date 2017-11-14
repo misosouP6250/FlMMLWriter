@@ -334,6 +334,15 @@ var FlMMLWriter = function () {
 		elmHlt.innerHTML = highlightFlMML(e.target.result);
 		updateScrBar();
 	}
+
+	function setMMLText(txt) {
+		var elm = document.getElementById("mmltxt");
+		var elmHlt = document.getElementById("mmlhighlight");
+
+		elm.value = txt;
+		elmHlt.innerHTML = highlightFlMML(txt);
+		updateScrBar();
+	}
 	
 	function onVolumeChange(vol) {
 		// var vol = document.getElementById("mmlvolume").value;
@@ -1464,6 +1473,9 @@ var FlMMLWriter = function () {
 		},
 		onMMLSelected: function(file) {
 			onMMLSelected(file);
+		},
+		setMMLText: function(file) {
+			setMMLText(file);
 		},
 		saveText: function(ext) {
 			saveText(ext);
