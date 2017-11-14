@@ -406,3 +406,12 @@ div#title-header::after {
 span#title-font {
 	font-size: 14pt;
 }
+
+/* 画面幅479px以下 */
+@media screen and ( max-width: 479px ) {
+	/* タイトルを表示しない */
+	div#title-header {
+		width: 0;
+		visibility: hidden;
+	}
+}
