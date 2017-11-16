@@ -5,9 +5,13 @@
 
 /* body */
 body {
+	position: absolute;
+	top: 0;
+	left: 0;
 	margin: 0;
 	padding: 0;
 	width: 100vw;
+	height: 100vh;
 	overflow: hidden;
 	color: #DDD;
 	background-color: #2C2F2C;
@@ -20,31 +24,39 @@ body {
 /* header */
 div#header {
 	position: relative;
+	float: left;
 	top: 0;
 	left: 0;
 	margin: 0;
 	padding: 4px;
 	width: 100vw;
-	height: 10vh;
+	height: 8vh;
+	min-height: 64px;
 	box-sizing: border-box;
 	overflow: hidden;
 }
 
 /* editor */
 div#editor {
-	position: relative;
-	height: 76vh;
+	position: absolute;
+	/* float: left; */
+	bottom: 12vh;
+	width: 100vw;
+	height: 80vh;
 	box-sizing: border-box;
 }
 
 /* footer */
 div#footer {
-	position: relative;
+	position: absolute;
 	bottom: 0;
 	right: 0;
 	margin: 0;
 	padding: 0;
-	height: 14vh;
+	width: 100vw;
+	height: 12vh;
+	min-height: 72px;
+	background-color: #2C2F2C;
 }
 
 /* 音符 [a-gA-G][%]?[0-9]* */
@@ -326,6 +338,12 @@ span {
 	word-wrap: break-word;
 }
 
+/* 時間表示 */
+span#mmltime {
+	float: right;
+	margin: 6px;
+}
+
 /* スクロールバー */
 div#scrollBar {
 	background-color: #777;
@@ -446,7 +464,7 @@ div#title-header::after {
 	overflow: hidden;
 	display: inline-block;
 	width: 15vw;
-	border-radius: 2px;
+	border-radius: 3px;
 	background-color: #555;
 	vertical-align: middle;
 }
@@ -461,6 +479,17 @@ div#title-header::after {
 	-webkit-appearance: none;
 }
 
+/* 画面高さ767px以下 */
+@media screen and ( max-height: 767px) {
+	/* エディタ・フッタの高さを変更 */
+	div#editor {
+		height: 66%;
+		height: -webkit-calc(100vh - (64px + 72px));
+		height: calc(100vh - (64px + 72px));
+		bottom: 72px;
+	}
+}
+
 /* 画面幅559px以下 */
 @media screen and ( max-width: 559px ) {
 	/* ヘッダの最低高さを指定 */
@@ -469,10 +498,14 @@ div#title-header::after {
 	}
 	/* エディタ・フッタの高さを変更 */
 	div#editor {
-		height: 66vh;
+		height: 66%;
+		height: -webkit-calc(78vh - 86px);
+		height: calc(78vh - 86px);
+		bottom: 21%;
+		bottom: calc(22vh - 28px);
 	}
 	div#footer {
-		height: 38vh;
+		height: 22vh;
 	}
 }
 

@@ -40,7 +40,7 @@
 			<img src="img/save-wav.png" height="20" width="33.75"  id="mmlsave" value="Save(.wav)" onclick="writer.save(false)">
 			<img src="img/save-mp3.png" height="20" width="33.75"  id="mmlsavemp3" value="Save(.mp3)" onclick="writer.save(true)">
 			<br>
-			<span> Highlight:</span>
+			<span>Highlight:</span>
 			<div class="select-custom-wrap">
 				<select id="editor-hl" name="editorHL" class="select-custom" placeholder="Highlight" onchange="writer.changeHltMode(this.options[this.selectedIndex].value)">
 					<option value="off">off</option>
@@ -54,8 +54,8 @@
 	<!-- editor -->
 	<div id="editor">
 		<textarea id="mmltxt" spellcheck="false"></textarea>
-		<div id="mmlhighlightwrap" style="bottom: 0; right: 0">
-			<span id="mmlhighlight" style="position:absolute; top: 0; left: 0; display: inline-block;"></span>
+		<div id="mmlhighlightwrap" style="position:absolute; bottom: 0; right: 0">
+			<span id="mmlhighlight" style="position:absolute; top: 0; left: 0;"></span>
 			<div id="scrollBar"></div>
 		</div>
 	</div>
@@ -68,7 +68,7 @@
 		<div id="ctrls">
 			<div id="ctrl-left" style="text-align: left; width: 63%">
 				<input type="range" id="mmlvolume" min="0" max="127" step="1" value="100" onClick="writer.onVolumeChange(this.value)">
-				<span id="mmlstatus">Volume: 100</span><span>　　　</span>
+				<span id="mmlstatus">Volume: 100</span>
 				<span id="mmltime">00:00/00:00</span><br>
 				<img src="img/pause.png" height="24" width="24" id="mmlpause" value="Play" onClick="writer.pause()">
 				<img src="img/play.png" height="24" width="24" id="mmlplay" value="Pause" onClick="writer.play()">
