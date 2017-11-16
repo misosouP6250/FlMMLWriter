@@ -502,7 +502,7 @@ div#title-header::after {
 		height: -webkit-calc(78vh - 86px);
 		height: calc(78vh - 86px);
 		bottom: 21%;
-		bottom: calc(22vh - 28px);
+		bottom: 22vh;
 	}
 	div#footer {
 		height: 22vh;
