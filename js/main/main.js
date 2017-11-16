@@ -1292,9 +1292,17 @@ var FlMMLWriter = function () {
 		return result;
 	}
 	
-	function changeHltMode () {
-		editorHltOn = document.getElementById("hlt-off").checked ? false : true;
-		editorHltDelayed = document.getElementById("hlt-rt").checked ? false : true;
+	function changeHltMode (mode) {
+		if(mode === "delay") {
+			editorHltOn = editorHltDelayed = true;
+		} else if(mode === "rt") {
+			editorHltOn = true;
+			editorHltDelayed = false;
+		} else if(mode === "off") {
+			editorHltOn = editorHltDelayed = false;
+		}
+		// editorHltOn = document.getElementById("hlt-off").checked ? false : true;
+		// editorHltDelayed = document.getElementById("hlt-rt").checked ? false : true;
 		var elmHlt = document.getElementById("mmlhighlight");
 		var elmTxt = document.getElementById("mmltxt");
 		if(editorHltOn){
@@ -1492,8 +1500,8 @@ var FlMMLWriter = function () {
 		onVolumeChange: function(vol) {
 			onVolumeChange(vol);
 		},
-		changeHltMode: function() {
-			changeHltMode();
+		changeHltMode: function(mode) {
+			changeHltMode(mode);
 		},
 		save: function(isMP3) {
 			save(isMP3);

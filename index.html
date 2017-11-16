@@ -12,6 +12,9 @@
 	document.addEventListener("DOMContentLoaded", function () {
 		writer = new FlMMLWriter();
 	});
+	window.addEventListener("load", function () {
+		writer.changeHltMode("delay");
+	});
 </script>
 <!-- <link rel="stylesheet" type="text/css" href="css/normalize.css"> -->
 <link rel="icon" href="favicon.ico" />
@@ -22,10 +25,13 @@
 	<!-- header -->
 	<div id="header">
 		<div id="title-header">
-			<img src="img/logo.png" height="240">
+			<a href="https://github.com/misosouP6250/FlMMLWriter/blob/master/README.md" target="fw-help"><img src="img/logo.png"></a>
 		</div>
 		<div id="ctrls-header">
-			<input type="file" id="mmlfile" onChange="writer.onMMLSelected(document.getElementById('mmlfile'))"></input>
+			<label for="mmlfile" id="label-mmlfile">
+				open file...
+				<input type="file" id="mmlfile" onChange="writer.onMMLSelected(document.getElementById('mmlfile'))" style="display:none">
+			</label>
 			<img src="img/reload.png" alt="reload" height="20" width="20" id="mmlreload" value="Reload" onclick="writer.onMMLSelected(document.getElementById('mmlfile'))">
 			<input type="text" id="mmlurl" value="" placeholder="URL/No.">
 			<img src="img/open-cloud.png" alt="open URL/ID" height="20" width="20" id="mmlopenurl" value="Open" onclick="writer.openUrl(document.getElementById('mmlurl').value)">
@@ -33,9 +39,15 @@
 			<img src="img/save-mml.png" height="20" width="33.75" id="mmlsavetxt" value="Save(.mml)" onclick="writer.saveText('.mml')">
 			<img src="img/save-wav.png" height="20" width="33.75"  id="mmlsave" value="Save(.wav)" onclick="writer.save(false)">
 			<img src="img/save-mp3.png" height="20" width="33.75"  id="mmlsavemp3" value="Save(.mp3)" onclick="writer.save(true)">
-			<span> Highlight:</span><input type="radio" id="hlt-off" name="editorHL" value="off" onClick="writer.changeHltMode()"><span>off</span>
-			<input type="radio" id="hlt-delay" name="editorHL" value="delay" checked="checked" onClick="writer.changeHltMode()"><span>delayed</span>
-			<input type="radio" id="hlt-rt" name="editorHL" value="rt" onClick="writer.changeHltMode()"><span>realtime</span><br>
+			<br>
+			<span> Highlight:</span>
+			<div class="select-custom-wrap">
+				<select id="editor-hl" name="editorHL" class="select-custom" placeholder="Highlight" onchange="writer.changeHltMode(this.options[this.selectedIndex].value)">
+					<option value="off">off</option>
+					<option value="delay" selected>delayed</option>
+					<option value="rt">realtime</option>
+				</select>
+			</div>
 		</div>
 	</div>
 	<!-- header end -->

@@ -25,7 +25,7 @@ div#header {
 	margin: 0;
 	padding: 4px;
 	width: 100vw;
-	height: 10vh;
+	height: 8vh;
 	box-sizing: border-box;
 	overflow: hidden;
 }
@@ -33,16 +33,18 @@ div#header {
 /* editor */
 div#editor {
 	position: relative;
-	height: 75vh;
+	height: 80vh;
 	box-sizing: border-box;
 }
 
 /* footer */
 div#footer {
 	position: relative;
+	bottom: 0;
+	right: 0;
 	margin: 0;
 	padding: 0;
-	height: 15vh;
+	height: 12vh;
 }
 
 /* 音符 [a-gA-G][%]?[0-9]* */
@@ -346,20 +348,28 @@ div#ctrls-header{
 	top:0;
 	left:0;
 	width: 100%;
+	z-index: 10;
 }
 
 div#ctrls-header img {
-	padding: 4px;
+	margin: 4px;
 	vertical-align: middle;
+	box-sizing: border-box;
+	-webkit-user-drag: none;
+}
+
+div#ctrls-header img:hover {
+	border: 1px solid #AAA;
+}
+
+div#ctrls-header img:active {
+	border: 1px solid #AAA;
+	padding: 1px 0 0 1px;
 }
 
 div#ctrls {
 	position: relative;
 	height: 100%;
-}
-
-div#ctrls > #ctrl-right {
-	float: left;
 }
 
 div#ctrls > #ctrl-left {
@@ -371,6 +381,17 @@ div#ctrls > #ctrl-left {
 
 #ctrl-left img {
 	vertical-align: middle;
+	box-sizing: border-box;
+	-webkit-user-drag: none;
+}
+
+#ctrl-left img:hover {
+	border: 1px solid #AAA;
+}
+
+#ctrl-left img:active {
+	border: 1px solid #AAA;
+	padding: 1px 0 0 1px;
 }
 
 div#ctrls > #ctrl-warn {
@@ -380,6 +401,18 @@ div#ctrls > #ctrl-warn {
 
 div#ctrls::after {
 	clear: both;
+}
+
+/* ラベル */
+label#label-mmlfile {
+	background-color: #555;
+	padding: 2px;
+	border-radius: 4px;
+	box-sizing: border-box;
+}
+
+label#label-mmlfile:hover {
+	background-color: #666;
 }
 
 /* テキストインプット */
@@ -396,19 +429,51 @@ div#title-header {
 	float: left;
 	width: 18%;
 	height: 100%;
+	z-index: 20;
 }
 
-div#title-header > img {
-	max-width: 100%;
+div#title-header img {
 	max-height: 100%;
+	max-width: 100%;
 }
 
 div#title-header::after {
 	clear: both;
 }
 
-span#title-font {
-	font-size: 14pt;
+/* セレクトボックス */
+.select-custom-wrap {
+	overflow: hidden;
+	display: inline-block;
+	width: 15vw;
+	border-radius: 2px;
+	background-color: #555;
+	vertical-align: middle;
+}
+
+.select-custom-wrap select {
+	border: 0;
+	color: #DDD;
+	background: transparent;
+	width: 100%;
+	padding: 2px;
+	background-color: #555;
+	-webkit-appearance: none;
+}
+
+/* 画面幅559px以下 */
+@media screen and ( max-width: 559px ) {
+	/* ヘッダの最低高さを指定 */
+	div#header {
+		min-height: 86px;
+	}
+	/* エディタ・フッタの高さを変更 */
+	div#editor {
+		height: 66vh;
+	}
+	div#footer {
+		height: 38vh;
+	}
 }
 
 /* 画面幅479px以下 */
@@ -416,6 +481,6 @@ span#title-font {
 	/* タイトルを表示しない */
 	div#title-header {
 		width: 0;
-		visibility: hidden;
+		display: none;
 	}
 }
