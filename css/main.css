@@ -15,6 +15,7 @@ body {
 	overflow: hidden;
 	color: #DDD;
 	background-color: #2C2F2C;
+	font-family: "Yu Gothic", "Hiragino Kaku Gothic ProN", Roboto, "Droid Sans", Meiryo, Arial, sans-serif; /* 字体指定 */
 
 	/* 文字アンチエイリアス設定 */
 	-webkit-font-smoothing: subpixel-antialiased;
@@ -296,6 +297,7 @@ span.pipeIOSync {
 textarea#mmltxt,
 textarea#mmlwarn,
 span#mmlhighlight {
+	appearance: none;
 	-webkit-appearance: none;
 	color: #DDD; /* 通常文字色 */
 	font-size: 14px; /* 文字サイズ */
@@ -329,6 +331,7 @@ div#mmlhighlightwrap {
 
 /* テキストエリア */
 textarea#mmltxt {
+	appearance: none;
 	-webkit-appearance: none;
 	resize: none;
 	background-color: #222218; /* 背景色 */
@@ -496,6 +499,7 @@ div#title-header::after {
 	width: 100%;
 	padding: 2px;
 	background-color: #555;
+	appearance: none;
 	-webkit-appearance: none;
 }
 
