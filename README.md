@@ -21,10 +21,10 @@ FlMMLWriterはWEBブラウザ上でFlMML(ピコカキコ) MMLを書くための�
 ・open file... ボタン  
 　ローカルの演奏データ\(text\)を参照してエディタに開きます。  
   
-・Reloadボタン <img src="https://raw.githubusercontent.com/misosouP6250/FlMMLWriter/master/img/reload.png" alt="Reloadボタン" title="Reload" width=16 height=16>  
+・Reloadボタン <img src="https://raw.githubusercontent.com/misosouP6250/FlMMLWriter/master/img/reload.png" alt="Reloadボタン" title="Reload" width=16 height=16 style="background-color:#111">  
 　ローカルデータを開きなおします。  
   
-・Play/Pause/Stopボタン <img src="https://raw.githubusercontent.com/misosouP6250/FlMMLWriter/master/img/play.png" alt="Playボタン" title="Play" width=16 height=16><img src="https://raw.githubusercontent.com/misosouP6250/FlMMLWriter/master/img/pause.png" alt="Pauseボタン" title="Pause" width=16 height=16><img src="https://raw.githubusercontent.com/misosouP6250/FlMMLWriter/master/img/stop.png" alt="Stopボタン" title="Stop" width=16 height=16>  
+・Play/Pause/Stopボタン <img src="https://raw.githubusercontent.com/misosouP6250/FlMMLWriter/master/img/play.png" alt="Playボタン" title="Play" width=16 height=16 style="background-color:#111"><img src="https://raw.githubusercontent.com/misosouP6250/FlMMLWriter/master/img/pause.png" alt="Pauseボタン" title="Pause" width=16 height=16 style="background-color:#111"><img src="https://raw.githubusercontent.com/misosouP6250/FlMMLWriter/master/img/stop.png" alt="Stopボタン" title="Stop" width=16 height=16 style="background-color:#111">  
 　順に再生/一時停止/停止ボタンです。  
   
 ・スライドバー  
@@ -34,13 +34,13 @@ FlMMLWriterはWEBブラウザ上でFlMML(ピコカキコ) MMLを書くための�
 　情報(音量、バッファ中、レンダリング中、再生時間など)が表示されます。  
   
 ・URL/No\.テキストフィールド  
-　URLまたはピコカキコ番号を指定、ダウンロードボタン <img src="https://raw.githubusercontent.com/misosouP6250/FlMMLWriter/master/img/open-cloud.png" alt="Stopボタン" title="Stop" width=16 height=16> をクリックしてテキストとしてエディタに開きます。  
+　URLまたはピコカキコ番号を指定、ダウンロードボタン <img src="https://raw.githubusercontent.com/misosouP6250/FlMMLWriter/master/img/open-cloud.png" alt="Stopボタン" title="Stop" width=16 height=16 style="background-color:#111"> をクリックしてテキストとしてエディタに開きます。  
 　ここで開いたファイルの先頭にはコメントが挿入されます。  
   
 ・Filenameテキストフィールド  
 　保存する際のファイル名を入力します。拡張子は自動で付与するので必要ありません。省略した場合は「flmml」となります。  
   
-・Save\(MML/WAV/MP3\)ボタン <img src="https://raw.githubusercontent.com/misosouP6250/FlMMLWriter/master/img/save-mml.png" alt="mmlボタン" title="save-mml" width=28 height=16><img src="https://raw.githubusercontent.com/misosouP6250/FlMMLWriter/master/img/save-wav.png" alt="wavボタン" title="save-wav" width=28 height=16><img src="https://raw.githubusercontent.com/misosouP6250/FlMMLWriter/master/img/save-mp3.png" alt="mp3ボタン" title="save-mp3" width=28 height=16>  
+・Save\(MML/WAV/MP3\)ボタン <img src="https://raw.githubusercontent.com/misosouP6250/FlMMLWriter/master/img/save-mml.png" alt="mmlボタン" title="save-mml" width=28 height=16 style="background-color:#111"><img src="https://raw.githubusercontent.com/misosouP6250/FlMMLWriter/master/img/save-wav.png" alt="wavボタン" title="save-wav" width=28 height=16 style="background-color:#111"><img src="https://raw.githubusercontent.com/misosouP6250/FlMMLWriter/master/img/save-mp3.png" alt="mp3ボタン" title="save-mp3" width=28 height=16 style="background-color:#111">  
 　順にテキスト、wavファイル、mp3ファイルとしてローカルに保存\(ダウンロード\)します。  
 　mp3としてダウンロードする場合、ブラウザ側のマシンで変換するのでスマートフォンなどではかなり時間がかかります。  
 　wavは44.1kHz ステレオ、mp3は44.1kHz ステレオ 192kb/sです。  
