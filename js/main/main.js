@@ -34,11 +34,15 @@ var FlMMLWriter = function () {
 	var editorColor = "";
 	var delayTimeoutID;
 	var delayTimeMSec = 1100;
+	var macroDelayTimeoutID;
 	var mmlDLUrl, myxhr;
 	var imprtComment = "";
 	var barMousedown = false;
 	var barOfsTop;
 	var touchOfs;
+	var mmlTxtBlock = [];
+	var mmlEmptyIdxList = [];
+	var mmlTxtPrevLength = 0;
 	var nowVol = 100;
 	var processCount = -1;
 	var procSamples = 0;
@@ -129,7 +133,7 @@ var FlMMLWriter = function () {
 			return samples;
 		};
 
-		console.log(recData);
+		// console.log(recData);
 		var dataview = encodeWAV(mergeBuffers(recData, procSmpl * 2), saveSampleRate, 2);
 		var audioBlob = new Blob([dataview], { type: 'audio/wav' });
 
@@ -289,7 +293,7 @@ var FlMMLWriter = function () {
 			return samples;
 		};
 
-		console.log(recData);
+		// console.log(recData);
 		
 		encodeMP3(mergeBuffers(recData, procSmpl), saveSampleRate, 2);
 
@@ -328,10 +332,14 @@ var FlMMLWriter = function () {
 	function onMMLLoaded(e) {
 		var elm = document.getElementById("mmltxt");
 		var elmHlt = document.getElementById("mmlhighlight");
-		console.log(e);
+		// console.log(e);
 
 		elm.value = e.target.result;
-		elmHlt.innerHTML = highlightFlMML(e.target.result);
+		// elmHlt.innerHTML = highlightFlMML2(e.target.result, true);
+		var editorHltDelayed_tmp = editorHltDelayed;
+		editorHltDelayed = true;
+		changeHltMode(false, {target: elm});
+		editorHltDelayed = editorHltDelayed_tmp;
 		updateScrBar();
 	}
 
@@ -340,7 +348,8 @@ var FlMMLWriter = function () {
 		var elmHlt = document.getElementById("mmlhighlight");
 
 		elm.value = txt;
-		elmHlt.innerHTML = highlightFlMML(txt);
+		// elmHlt
+		elmHlt.innerHTML = highlightFlMML2(txt, true);
 		updateScrBar();
 	}
 	
@@ -409,7 +418,7 @@ var FlMMLWriter = function () {
 
 	function onComplete() {
 		if(!isPlay) {
-			console.log("complete! smpls: "+ processCount);
+			// console.log("complete! smpls: "+ processCount);
 			var audioBlob = isEncodeMP3 ? saveMP3.call(this, Math.min(procSamples, processCount)) : saveWav.call(this, Math.min(procSamples, processCount));
 			if(audioBlob) {
 				dlBlob.call(this, audioBlob, ".wav");
@@ -690,6 +699,1229 @@ var FlMMLWriter = function () {
 			dlLink.click();
 			document.body.removeChild(dlLink);
 		}
+	}
+
+	function highlightFlMML3(text) {
+		mmlTxtBlock.push({
+
+		});
+	}
+
+	function txtBlock_shiftStart(txtBlock, offset) {
+		var ret = txtBlock;
+		do {
+			// console.log(txtBlock);
+			ret.start += offset;
+			ret = ret.next;
+			// console.log(txtBlock);
+		} while(ret);
+	}
+
+	function highlightFlMML3_pre2(evt_input, elm_hlt) {
+		if(evt_input) {
+			var newLength = evt_input.target.value.length;
+			var diffLength = newLength - mmlTxtPrevLength;
+			var pos_start = evt_input.target.selectionStart;
+			var input_txt = evt_input.target.value;
+			if(newLength <= 0) {
+				elm_hlt.innerHTML = "";
+				mmlTxtBlock.length = 0;
+				return;
+			}
+			if(mmlTxtBlock.length > 0) {
+				var new_txt = input_txt.substr(pos_start - diffLength, diffLength);
+				console.log(new_txt + " pos_start:" + pos_start);
+				if(diffLength > 0 && pos_start == 1) {
+					pos_start++;
+				}
+				for(var i=mmlTxtBlock.length-1; i>=0; i--) {
+					if(!mmlTxtBlock[i].isPerform) {
+						continue;
+					}
+					if(pos_start - diffLength > mmlTxtBlock[i].start &&
+					pos_start <= mmlTxtBlock[i].start + mmlTxtBlock[i].len + diffLength) {
+						var txtBlock_parent = mmlTxtBlock[i].elm.parentNode;
+						var new_len = mmlTxtBlock[i].len + diffLength;
+						console.log(mmlTxtBlock[i].elm.innerText);
+						if(mmlTxtBlock[i].isPerform &&
+						new_len > 0 && mmlTxtBlock[i].searchStr instanceof RegExp) {
+							// var txtBlock_parent = mmlTxtBlock[i].elm.parentNode;
+							var ret = new_txt.search(mmlTxtBlock[i].searchStr);
+							if(ret == -1) {		// グループに含まれる -> グループに新規文字を追加
+								console.log("here0-1! st:" + mmlTxtBlock[i].start);
+								// console.log(mmlTxtBlock[i].len);
+								mmlTxtBlock[i].len += diffLength;
+								var str1 = input_txt.substr(mmlTxtBlock[i].start, mmlTxtBlock[i].len);
+								console.log(str1);
+								mmlTxtBlock[i].elm.innerText = str1;
+								console.log(mmlTxtBlock[i].next);
+								if(typeof mmlTxtBlock[i].nextIdx == "number") {
+									var next_idx = mmlTxtBlock[i].nextIdx;
+									console.log(next_idx);
+									while(typeof next_idx == "number") {
+										mmlTxtBlock[next_idx].start += diffLength;
+										next_idx = mmlTxtBlock[next_idx].nextIdx;
+									}
+									// txtBlock_shiftStart(mmlTxtBlock[i].next, diffLength);
+									console.log(mmlTxtBlock[i].next);
+								}
+								break;
+							}
+						}
+						if(new_len <= 0) {
+							console.log("here-del");
+							console.log("remove: ");
+							console.log(mmlTxtBlock[i]);
+							txtBlock_parent.removeChild(mmlTxtBlock[i].elm);
+							mmlTxtBlock[i].len = 0;
+							mmlTxtBlock[i].isPerform = false;
+							/* var next_idx = mmlTxtBlock[i].nextIdx;
+							mmlTxtBlock.splice(i, 1);
+							while(typeof next_idx == "number") {
+								// mmlTxtBlock[next_idx].start += diffLength;
+								mmlTxtBlock[next_idx].start += diffLength;
+								if(mmlTxtBlock[next_idx].nextIdx >= del_idx) {
+									next_idx = --mmlTxtBlock[next_idx].nextIdx;
+								} else {
+									next_idx = mmlTxtBlock[next_idx].nextIdx;
+								}
+							} */
+							var next_idx = mmlTxtBlock[i].nextIdx;
+							while(typeof next_idx == "number") {
+								// mmlTxtBlock[next_idx].start += diffLength;
+								mmlTxtBlock[next_idx].start += diffLength;
+								next_idx = mmlTxtBlock[next_idx].nextIdx;
+							}
+							break;
+						}
+						console.log("here0-!prev " + mmlTxtBlock[i].next);
+						if(typeof mmlTxtBlock[i].nextIdx != "number") {	// 次グループなし -> 末尾に追加
+							var str1 = input_txt.substr(mmlTxtBlock[i].start, mmlTxtBlock[i].len + diffLength);
+							var ret_hlt = highlightFlMML2(str1, false);
+							console.log(str1);
+							ret_hlt[0].start += mmlTxtBlock[i].start;
+							ret_hlt[0].prev = mmlTxtBlock[i].prev;
+							ret_hlt[0].isPerform = true;
+							// mmlTxtBlock.push(ret_hlt[0]);
+							txtBlock_parent.replaceChild(ret_hlt[0].elm, mmlTxtBlock[i].elm);
+							// mmlTxtBlock[i] = ret_hlt[0];
+							// mmlTxtBlock[i].next = ret_hlt[0];
+							for(var j=1; j<ret_hlt.length; j++) {
+								ret_hlt[j].start += mmlTxtBlock[i].start;
+								ret_hlt[j].isPerform = true;
+								console.log(ret_hlt[j]);
+								mmlTxtBlock.push(ret_hlt[j]);
+								ret_hlt[j-1].nextIdx = mmlTxtBlock.length-1;
+								txtBlock_parent.appendChild(ret_hlt[j].elm);
+							}
+							mmlTxtBlock[mmlTxtBlock.length-1].nextIdx = null;
+							mmlTxtBlock[i] = ret_hlt[0];
+						}/* else if(typeof mmlTxtBlock[i].nextIdx == "number" && !mmlTxtBlock[mmlTxtBlock[i].nextIdx].isPerform) { // 次グループあり、動いてない -> 進めてcontinue
+							var blk_next = mmlTxtBlock[mmlTxtBlock[i].nextIdx];
+							var tmp_idx = mmlTxtBlock[i].nextIdx;
+							while(blk_next && !blk_next.isPerform) {
+								mmlEmptyIdxList.push(tmp_idx);
+								tmp_idx = blk_next.nextIdx;
+								blk_next = mmlTxtBlock[blk_next.nextIdx];
+							}
+							console.log(mmlEmptyIdxList);
+							console.log(mmlTxtBlock);
+							// var blk_next_idx = blk_next.nextIdx || null;
+							if(blk_next && typeof blk_next.nextIdx == "number") {
+								mmlTxtBlock[i].nextIdx = tmp_idx;
+							} else {
+								mmlTxtBlock[i].nextIdx = null;
+							}
+							i++;
+							continue;
+						} */ else {					// 次グループあり -> 再評価
+							// var blk_next_cp = JSON.parse(JSON.stringify(mmlTxtBlock[i]));
+							var blk_next = mmlTxtBlock[mmlTxtBlock[i].nextIdx];
+							var tmp_idx = mmlTxtBlock[i].nextIdx;
+							while(blk_next && !blk_next.isPerform) {
+								mmlEmptyIdxList.push(tmp_idx);
+								tmp_idx = blk_next.nextIdx;
+								blk_next = mmlTxtBlock[tmp_idx];
+								mmlTxtBlock[i].nextIdx = tmp_idx;
+							}
+							console.log(mmlEmptyIdxList);
+							console.log(tmp_idx);
+							// var blk_next = mmlTxtBlock[mmlTxtBlock[i].nextIdx];
+							if(typeof tmp_idx != "number") {
+								var str1 = input_txt.substr(mmlTxtBlock[i].start, mmlTxtBlock[i].len + diffLength);
+								var ret_hlt = highlightFlMML2(str1, false);
+								console.log(str1);
+								ret_hlt[0].start += mmlTxtBlock[i].start;
+								ret_hlt[0].prev = mmlTxtBlock[i].prev;
+								ret_hlt[0].isPerform = true;
+								// mmlTxtBlock.push(ret_hlt[0]);
+								txtBlock_parent.replaceChild(ret_hlt[0].elm, mmlTxtBlock[i].elm);
+								// mmlTxtBlock[i] = ret_hlt[0];
+								// mmlTxtBlock[i].next = ret_hlt[0];
+								for(var j=1; j<ret_hlt.length; j++) {
+									ret_hlt[j].start += mmlTxtBlock[i].start;
+									ret_hlt[j].isPerform = true;
+									console.log(ret_hlt[j]);
+									mmlTxtBlock.push(ret_hlt[j]);
+									ret_hlt[j-1].nextIdx = mmlTxtBlock.length-1;
+									txtBlock_parent.appendChild(ret_hlt[j].elm);
+								}
+								mmlTxtBlock[mmlTxtBlock.length-1].nextIdx = null;
+								mmlTxtBlock[i] = ret_hlt[0];
+								break;
+							}
+							var blk_next_idx = blk_next.nextIdx;
+							var blk_next_next = mmlTxtBlock[blk_next.nextIdx];
+							while(blk_next_next && !blk_next_next.isPerform) {
+								mmlEmptyIdxList.push(blk_next_idx);
+								blk_next_idx = blk_next_next.nextIdx;
+								blk_next_next = mmlTxtBlock[blk_next_idx];
+								mmlTxtBlock[mmlTxtBlock[i].nextIdx].nextIdx = blk_next_next.nextIdx;
+							}
+							var blk_next_next_idx;
+							console.log(blk_next_idx);
+							if(typeof blk_next_idx == "number") {
+								// mmlTxtBlock[i].nextIdx = blk_next.nextIdx;
+								// mmlTxtBlock[i].nextIdx = tmp_idx;
+								blk_next_next_idx = mmlTxtBlock[blk_next_idx].nextIdx;
+							} else {
+								mmlTxtBlock[mmlTxtBlock[i].nextIdx].nextIdx = null;
+								blk_next_next_idx = null;
+							}
+							console.log("next_next: " + blk_next_next_idx);
+							// var str1 = mmlTxtBlock[i].elm.innerText;
+							var str1 = input_txt.substr(mmlTxtBlock[i].start, mmlTxtBlock[i].len + diffLength);
+							// var str2 = new_txt;
+							var str2 = blk_next.elm.innerText;
+							console.log("next! " + mmlTxtBlock[i].len + ":" + str1 + "," + diffLength + ":" + str2);
+							console.log(blk_next);
+							var ret_hlt = highlightFlMML2(str1 + str2, false);
+							ret_hlt[0].start += mmlTxtBlock[i].start;
+							ret_hlt[0].prev = mmlTxtBlock[i].prev;
+							ret_hlt[0].isPerform = true;
+							if(mmlTxtBlock[i].prev) {
+								mmlTxtBlock[i].prev.next = ret_hlt[0];
+							}
+							// mmlTxtBlock[i] = ret_hlt[0];
+							// mmlTxtBlock.push(ret_hlt[0]);
+							txtBlock_parent.replaceChild(ret_hlt[0].elm, mmlTxtBlock[i].elm);
+							/* var blk_next_idx = mmlTxtBlock.indexOf(blk_next);
+							console.log("blk_next_idx :" + blk_next_idx);
+							mmlTxtBlock[blk_next_idx] = mmlTxtBlock[i];
+							mmlTxtBlock[blk_next_idx].prev = blk_next; */
+							// txtBlock_parent.appendChild(ret_hlt[0].elm);
+							// mmlTxtBlock[i].next = ret_hlt[0];
+							//var next_elm = mmlTxtBlock[i].next.elm;
+							// mmlTxtBlock[i] = ret_hlt[0];
+							// mmlTxtBlock[i].next = ret_hlt[0];
+							for(var j=1; j<ret_hlt.length; j++) {
+								// ret_hlt[j].start += (mmlTxtBlock[i].start + mmlTxtBlock[i].len);
+								// ret_hlt[j-1].nextIdx = mmlTxtBlock.length-1;
+								ret_hlt[j].start += mmlTxtBlock[i].start;
+								ret_hlt[j].isPerform = true;
+								mmlTxtBlock.push(ret_hlt[j]);
+								ret_hlt[j-1].nextIdx = mmlTxtBlock.length-1;
+								// mmlTxtBlock[i].elm.parentNode.insertBefore(ret_hlt[j].elm, next_elm.nextSibling);
+								if(typeof blk_next_idx == "number") {
+									console.log(mmlTxtBlock[blk_next_idx]);
+									txtBlock_parent.insertBefore(ret_hlt[j].elm, mmlTxtBlock[blk_next_idx].elm);
+								} else {
+									txtBlock_parent.appendChild(ret_hlt[j].elm);
+								}
+								console.log(ret_hlt[j].elm.innerText);
+							}
+							// mmlTxtBlock[mmlTxtBlock.length-1].nextIdx = blk_next_idx;
+							var next_idx = null;
+							if(typeof mmlTxtBlock[i].nextIdx == "number") {
+								console.log("remove: " + mmlTxtBlock[i].nextIdx);
+								txtBlock_parent.removeChild(mmlTxtBlock[mmlTxtBlock[i].nextIdx].elm);
+								// var del_idx = mmlTxtBlock.indexOf(mmlTxtBlock[i].next);
+								var del_idx = mmlTxtBlock[i].nextIdx;
+								mmlTxtBlock[i] = ret_hlt[0];
+								/*
+								if(blk_next_next_idx && mmlTxtBlock[blk_next_next_idx].nextIdx >= del_idx) {
+									mmlTxtBlock[blk_next_next_idx].nextIdx--;
+								}
+								mmlTxtBlock[mmlTxtBlock.length-1].nextIdx = blk_next_idx;
+								*/
+								// mmlTxtBlock[mmlTxtBlock.length-1].nextIdx = blk_next_idx;
+								//mmlTxtBlock[mmlTxtBlock.length-1].nextIdx = mmlTxtBlock[del_idx].nextIdx;
+								/*
+								if(mmlTxtBlock[i].nextIdx >= del_idx) {
+									console.log("decl: " + mmlTxtBlock[i].nextIdx);
+									mmlTxtBlock[i].nextIdx--;
+								}
+								*/
+								// mmlTxtBlock[i].nextIdx = mmlTxtBlock.length-1;
+								mmlTxtBlock[mmlTxtBlock.length-1].nextIdx = blk_next_idx;
+								// next_idx = mmlTxtBlock[mmlTxtBlock.length-1].nextIdx;
+								next_idx = mmlTxtBlock[i].nextIdx;
+								mmlTxtBlock[i].nextIdx = mmlTxtBlock.length-1;
+								console.log("nextIdx:" + mmlTxtBlock[i].nextIdx);
+								mmlTxtBlock[del_idx].isPerform = false;
+								if(next_idx >= del_idx) {
+									console.log("decl: " + next_idx);
+									// mmlTxtBlock[mmlTxtBlock.length-1].nextIdx--;
+									// mmlTxtBlock[i].nextIdx--;
+									// next_idx--;
+								}
+								
+								// mmlTxtBlock.splice(del_idx, 1);
+							}
+							console.log(next_idx);
+							console.log(mmlTxtBlock);
+							/* while(typeof next_idx == "number") {
+								// mmlTxtBlock[next_idx].start += diffLength;
+								console.log(next_idx);
+								console.log("del: " + del_idx);
+								mmlTxtBlock[next_idx].start += diffLength;
+								if(typeof mmlTxtBlock[i].nextIdx == "number"){
+									if(mmlTxtBlock[next_idx].nextIdx >= del_idx) {
+										next_idx = --mmlTxtBlock[next_idx].nextIdx;
+									} else {
+										next_idx = mmlTxtBlock[next_idx].nextIdx;
+									}
+								}
+							} */
+							// mmlTxtBlock[mmlTxtBlock.length-1].next = blk_next_next;
+							// if(typeof blk_next_next_idx == "number") {
+							//	mmlTxtBlock[mmlTxtBlock.length-1].nextIdx = blk_next_next_idx;
+								// txtBlock_shiftStart(mmlTxtBlock[blk_next_next_idx], diffLength);
+							// }
+						}
+						break;
+					}
+				}
+			} else {
+				var ret_hlt = highlightFlMML2(input_txt, true);
+				ret_hlt[0].isPerform = true;
+				mmlTxtBlock.push(ret_hlt[0]);
+				for(var j=1; j<ret_hlt.length; j++) {
+					ret_hlt[j].isPerform = true;
+					ret_hlt[j-1].nextIdx = j;
+					mmlTxtBlock.push(ret_hlt[j]);
+				}
+				mmlTxtBlock[mmlTxtBlock.length-1].nextIdx = null;
+				for(var j=0; j<mmlTxtBlock.length; j++) {
+					elm_hlt.appendChild(mmlTxtBlock[j].elm);
+				}
+			}
+			console.log(mmlTxtBlock);
+			mmlTxtPrevLength = newLength;
+		}
+	}
+
+	function highlightFlMML3_pre(evt_input, elm_hlt) {
+		if(evt_input) {
+			console.log(evt_input);
+			var pos_start = evt_input.target.selectionStart;
+			var newLength = evt_input.target.value.length;
+			var diffLength = newLength - mmlTxtPrevLength;
+			var input_txt = evt_input.target.value;
+			console.log("pos_start: " + pos_start + ", newLength: " + newLength + ", diffLength: " + diffLength);
+			if(mmlTxtBlock.length > 0) {
+				var isMatch = false;
+				var new_txt = input_txt.substr(pos_start - diffLength, diffLength);
+				if(pos_start != 0) {	// 先頭以外へ追記 -> 前のグループに含まれるか
+					console.log("normal!");
+					for(var i=mmlTxtBlock.length-1; i>=0; i--) {
+						if(pos_start > mmlTxtBlock[i].start + 1 &&
+						pos_start <= mmlTxtBlock[i].start + mmlTxtBlock[i].len + diffLength) {
+						// if(!mmlTxtBlock[i].next) {
+							var txtBlock_parent = mmlTxtBlock[i].elm.parentNode;
+							if(typeof mmlTxtBlock[i].searchStr != "number") {
+								var ret = new_txt.search(mmlTxtBlock[i].searchStr);
+								if(ret == -1) {		// グループに含まれる -> グループに新規文字を追加
+									console.log("here0-1! st:" + mmlTxtBlock[i].start);
+									// console.log(mmlTxtBlock[i].len);
+									mmlTxtBlock[i].len += diffLength;
+									var str1 = input_txt.substr(mmlTxtBlock[i].start, mmlTxtBlock[i].len);
+									console.log(str1);
+									mmlTxtBlock[i].elm.innerText = str1;
+									console.log(mmlTxtBlock[i].next);
+									if(mmlTxtBlock[i].next) {
+										console.log(mmlTxtBlock[i].next);
+										txtBlock_shiftStart(mmlTxtBlock[i].next, diffLength);
+									}
+								} else {			// グループに含まれない -> 次グループを再評価
+									console.log("here0-!prev");
+									// var str1 = input_txt.substr(mmlTxtBlock[i].start, mmlTxtBlock[i].len + diffLength);
+									// var str1 = new_txt
+									// var ret_hlt = highlightFlMML2(str1, true);
+									// console.log(str1);
+									// if(ret_hlt.length) {
+										if(!mmlTxtBlock[i].next) {	// 次グループなし -> 末尾に追加
+											var str1 = input_txt.substr(mmlTxtBlock[i].start, mmlTxtBlock[i].len + diffLength);
+											var ret_hlt = highlightFlMML2(str1, true);
+											console.log(str1);
+											ret_hlt[0].start += mmlTxtBlock[i].start;
+											ret_hlt[0].prev = mmlTxtBlock[i].prev;
+											// mmlTxtBlock.push(ret_hlt[0]);
+											txtBlock_parent.replaceChild(ret_hlt[0].elm, mmlTxtBlock[i].elm);
+											// mmlTxtBlock[i] = ret_hlt[0];
+											// mmlTxtBlock[i].next = ret_hlt[0];
+											for(var j=1; j<ret_hlt.length; j++) {
+												ret_hlt[j].start += mmlTxtBlock[i].start;
+												console.log(ret_hlt[j]);
+												mmlTxtBlock.push(ret_hlt[j]);
+												txtBlock_parent.appendChild(ret_hlt[j].elm);
+											}
+											mmlTxtBlock[i] = ret_hlt[0];
+										} else {					// 次グループあり -> 再評価
+											var blk_next = mmlTxtBlock[i].next;
+											var blk_next_next = mmlTxtBlock[i].next.next;
+											var str1 = mmlTxtBlock[i].elm.innerText;
+											var str2 = new_txt;
+											var str3 = blk_next.elm.innerText;
+											console.log("next! " + str1 + str2 + str3);
+											console.log(blk_next);
+											var ret_hlt = highlightFlMML2(str1 + str2 + str3, true);
+											ret_hlt[0].start += mmlTxtBlock[i].start;
+											ret_hlt[0].prev = mmlTxtBlock[i].prev;
+											mmlTxtBlock[i].prev.next = ret_hlt[0].start;
+											// mmlTxtBlock[i] = ret_hlt[0];
+											// mmlTxtBlock.push(ret_hlt[0]);
+											txtBlock_parent.replaceChild(ret_hlt[0].elm, mmlTxtBlock[i].elm);
+											/* var blk_next_idx = mmlTxtBlock.indexOf(blk_next);
+											console.log("blk_next_idx :" + blk_next_idx);
+											mmlTxtBlock[blk_next_idx] = mmlTxtBlock[i];
+											mmlTxtBlock[blk_next_idx].prev = blk_next; */
+											// txtBlock_parent.appendChild(ret_hlt[0].elm);
+											// mmlTxtBlock[i].next = ret_hlt[0];
+											var next_elm = mmlTxtBlock[i].next.elm;
+											// mmlTxtBlock[i] = ret_hlt[0];
+											// mmlTxtBlock[i].next = ret_hlt[0];
+											for(var j=1; j<ret_hlt.length; j++) {
+												ret_hlt[j].start += (mmlTxtBlock[i].start + mmlTxtBlock[i].len);
+												mmlTxtBlock.push(ret_hlt[j]);
+												// mmlTxtBlock[i].elm.parentNode.insertBefore(ret_hlt[j].elm, next_elm.nextSibling);
+												txtBlock_parent.insertBefore(ret_hlt[j].elm, next_elm);
+											}
+											txtBlock_parent.removeChild(mmlTxtBlock[i].next.elm);
+											var del_idx = mmlTxtBlock.indexOf(mmlTxtBlock[i].next);
+											mmlTxtBlock[i] = ret_hlt[0];
+											mmlTxtBlock.splice(del_idx, 1);
+											mmlTxtBlock[mmlTxtBlock.length-1].next = blk_next_next;
+											txtBlock_shiftStart(blk_next_next, diffLength);
+										}
+									// }
+								}
+							} else {	// 正規表現なし -> 新規グループを末尾に追加
+								console.log("here0n new_txt: " + new_txt);
+								// var ret_hlt = highlightFlMML2(new_txt, true);
+								// if(ret_hlt.length) {
+									var new_txt_len = new_txt.length;
+									if(!mmlTxtBlock[i].next) {	// 次グループなし -> 末尾に追加
+										console.log("no-next")
+										var ret_hlt = highlightFlMML2(new_txt, true);
+										//ret_hlt[0].start += (mmlTxtBlock[i].start + mmlTxtBlock[i].len);
+										ret_hlt[0].start += (mmlTxtBlock[i].start + new_txt_len);
+										ret_hlt[0].prev = mmlTxtBlock[i];
+										mmlTxtBlock.push(ret_hlt[0]);
+										txtBlock_parent.appendChild(ret_hlt[0].elm);
+										mmlTxtBlock[i].next = ret_hlt[0];
+										for(var j=1; j<ret_hlt.length; j++) {
+											// ret_hlt[j].start += (mmlTxtBlock[i].start + mmlTxtBlock[i].len);
+											ret_hlt[j].start += (mmlTxtBlock[i].start + new_txt_len);
+											mmlTxtBlock.push(ret_hlt[j]);
+											mmlTxtBlock[i].elm.parentNode.appendChild(ret_hlt[j].elm);
+										}
+									} else {					// 次グループあり -> 再評価
+										console.log("next");
+										var start_offset = mmlTxtBlock[i].start;
+										var blk_next = mmlTxtBlock[i].next;
+										var blk_next_next = mmlTxtBlock[i].next.next;
+										console.log(mmlTxtBlock[i].elm);
+										var str1 = mmlTxtBlock[i].elm.innerText;
+										var str2 = mmlTxtBlock[i].next.elm.innerText;
+										console.log(str1 + new_txt + str2);
+										var new_txt_len = new_txt.length;
+										var ret_hlt = highlightFlMML2(str1 + new_txt + str2, true);
+										// ret_hlt[0].start += (mmlTxtBlock[i].next.start + mmlTxtBlock[i].len);
+										ret_hlt[0].start += start_offset;
+										ret_hlt[0].prev = mmlTxtBlock[i].prev;
+										// mmlTxtBlock[i] = ret_hlt[0];
+										console.log(ret_hlt[0]);
+										// blk_next.elm.parentNode.insertBefore(ret_hlt[0].elm, blk_next.elm);
+										// console.log(mmlTxtBlock[i].elm);
+										// console.log(blk_next);
+										console.log();
+										txtBlock_parent.replaceChild(ret_hlt[0].elm, mmlTxtBlock[i].elm);
+										// txtBlock_parent.removeChild(mmlTxtBlock[i].next.elm);
+										
+										// mmlTxtBlock[mmlTxtBlock.indexOf(blk_next)] = ret_hlt[0];
+										// mmlTxtBlock[i] = ret_hlt[0];
+										// mmlTxtBlock[i] = ret_hlt[0];
+										// console.log(blk_next);
+										// mmlTxtBlock[i].next = ret_hlt[0];
+										for(var j=1; j<ret_hlt.length; j++) {
+											ret_hlt[j].start += (start_offset);
+											// ret_hlt[j].start += (mmlTxtBlock[i].start + mmlTxtBlock[i].len);
+											mmlTxtBlock.push(ret_hlt[j]);
+											// blk_next.elm.parentNode.insertBefore(ret_hlt[j].elm, blk_next.elm);
+											txtBlock_parent.insertBefore(ret_hlt[j].elm, ret_hlt[j-1].elm.nextSibling);
+											// txtBlock_parent.insertBefore(ret_hlt[j].elm, mmlTxtBlock[i].next.elm);
+											// txtBlock_parent.insertBefore(ret_hlt[j].elm, ret_hlt[0].elm);
+										}
+										txtBlock_parent.removeChild(mmlTxtBlock[i].next.elm);
+										var del_idx = mmlTxtBlock.indexOf(mmlTxtBlock[i].next);
+										mmlTxtBlock.splice(del_idx, 1);
+										mmlTxtBlock[i] = ret_hlt[0];
+										if(blk_next_next) {
+											ret_hlt[ret_hlt.length-1].next = blk_next_next;
+											blk_next_next.prev = ret_hlt[ret_hlt.length-1];
+										}
+										// mmlTxtBlock[i].next = ret_hlt[0];
+										// mmlTxtBlock[mmlTxtBlock.length-1].next = blk_next;
+										// txtBlock_shiftStart(mmlTxtBlock[i].next, diffLength);
+									}
+									/*
+									for(var j=0; j<ret_hlt.length; j++) {
+										// ret_hlt[j].start += (mmlTxtBlock[i].start + mmlTxtBlock[i].len);
+										ret_hlt[j].start += mmlTxtBlock[i].start;
+										mmlTxtBlock.push(ret_hlt[j]);
+										mmlTxtBlock[i].elm.parentNode.appendChild(ret_hlt[j].elm);
+									}
+									mmlTxtBlock[i].next = ret_hlt[0];
+									*/
+								// }
+							}
+							break;
+						}
+					}
+				} else {						// 先頭へ追記 -> 次グループに含まれるか
+					console.log("head!");
+					for(var i=mmlTxtBlock.length-1; i>=0; i--) {
+						if(pos_start > mmlTxtBlock[i].start &&
+						pos_start <= mmlTxtBlock[i].start + mmlTxtBlock[i].len + diffLength) {
+							if(typeof mmlTxtBlock[i].searchStr != "number") {
+								var ret = new_txt.search(mmlTxtBlock[i].searchStr);
+								if(ret == -1) {		// 次グループに含まれる -> 次グループに新規文字を追加
+									console.log("here1-1!");
+									// console.log(mmlTxtBlock[i].len);
+									mmlTxtBlock[i].len += diffLength;
+									var str1 = input_txt.substr(mmlTxtBlock[i].start, mmlTxtBlock[i].len);
+									console.log(str1);
+									mmlTxtBlock[i].elm.innerText = str1;
+									if(mmlTxtBlock[i].next) {
+										console.log(mmlTxtBlock[i].next);
+										txtBlock_shiftStart(mmlTxtBlock[i].next, diffLength);
+									}
+								} else {			// 次グループに含まれない -> 新規グループを追加
+									console.log("here1-else");
+									// var str1 = input_txt.substr(mmlTxtBlock[i].start, mmlTxtBlock[i].len + diffLength);
+									var str1_start = mmlTxtBlock[i].start;
+									var str1_len = mmlTxtBlock[i].len;
+									var txtBlock_next = mmlTxtBlock[i].next;
+									var txtBlock_parent = mmlTxtBlock[i].elm.parentNode;
+									if(txtBlock_next) {	// 次グループがある -> 次グループを含めて再評価
+										console.log("here1-else-next");
+										console.log(mmlTxtBlock[i]);
+										var str1 = input_txt.substr(mmlTxtBlock[i].start, mmlTxtBlock[i].len + diffLength);
+										var new_txt_next = str1 + txtBlock_next.elm.innerText;
+										console.log("new_txt_next: " + new_txt_next);
+										var del_idx = mmlTxtBlock.indexOf(mmlTxtBlock[i].next);
+										// txtBlock_next = mmlTxtBlock[i].next;
+										console.log(txtBlock_next);
+										txtBlock_next.elm.parentNode.removeChild(txtBlock_next.elm);
+										var ret_hlt = highlightFlMML2(new_txt_next, true);
+										if(ret_hlt.length) {
+											var elm_txtBlock_next = mmlTxtBlock[i].elm.nextSibling;
+											mmlTxtBlock[i].elm.parentNode.removeChild(mmlTxtBlock[i].elm);
+											// ret_hlt[0].start += (str1_start + str1_len);
+											ret_hlt[0].start = str1_start;
+											mmlTxtBlock[i] = ret_hlt[0];
+											str1_len = ret_hlt[0].elm.innerText.length;
+											elm_txtBlock_next.parentNode.insertBefore(ret_hlt[0].elm, elm_txtBlock_next);
+											for(var j=1; j<ret_hlt.length; j++) {
+												// ret_hlt[j].start += (str1_start + str1_len);
+												ret_hlt[j].start += str1_start;
+												mmlTxtBlock.push(ret_hlt[j]);
+												mmlTxtBlock[i].elm.parentNode.insertBefore(ret_hlt[j].elm, elm_txtBlock_next);
+											}
+											// txtBlock_shiftStart(mmlTxtBlock[i].next, diffLength);
+											//txtBlock_shiftStart(txtBlock_next, diffLength);
+											// mmlTxtBlock[i].next.elm.parentNode.removeChild(mmlTxtBlock[i].next.elm);
+											// mmlTxtBlock[i].next = ret_hlt[0];
+											// var del_idx = mmlTxtBlock.indexOf(mmlTxtBlock[i].next);
+											// mmlTxtBlock[mmlTxtBlock.length-1].next = mmlTxtBlock[i].next;
+											mmlTxtBlock[mmlTxtBlock.length-1].next = txtBlock_next.next;
+											txtBlock_shiftStart(txtBlock_next, diffLength);
+											// mmlTxtBlock[i].next = ret_hlt[0];
+											console.log(mmlTxtBlock[mmlTxtBlock.length-1]);
+											mmlTxtBlock.splice(del_idx, 1);
+											//var del_idx = mmlTxtBlock.indexOf(mmlTxtBlock[i].next);
+											//mmlTxtBlock.splice(del_idx, 1);
+											// mmlTxtBlock[i].elm.parentNode.removeChild(mmlTxtBlock[i].elm);
+											// del_idx = 
+										}
+									} else {		// 次グループがない -> グループを再評価
+										console.log("here1-else-!next");
+										var str1 = input_txt.substr(mmlTxtBlock[i].start, mmlTxtBlock[i].len + diffLength);
+										console.log("str1: " + str1);
+										// var del_idx = mmlTxtBlock.indexOf(mmlTxtBlock[i].next);
+										// txtBlock_next = mmlTxtBlock[i].next;
+										// mmlTxtBlock[i].next.elm.parentNode.removeChild(mmlTxtBlock[i].next.elm);
+										var ret_hlt = highlightFlMML2(str1, true);
+										if(ret_hlt.length) {
+											var elm_txtBlock_pn = mmlTxtBlock[i].elm.parentNode;
+											mmlTxtBlock[i].elm.parentNode.removeChild(mmlTxtBlock[i].elm);
+											// ret_hlt[0].start += (str1_start + str1_len);
+											ret_hlt[0].start = str1_start;
+											mmlTxtBlock[i] = ret_hlt[0];
+											str1_len = ret_hlt[0].elm.innerText.length;
+											// elm_txtBlock_next.parentNode.insertBefore(ret_hlt[0].elm, elm_txtBlock_next);
+											elm_txtBlock_pn.appendChild(ret_hlt[0].elm);
+											for(var j=1; j<ret_hlt.length; j++) {
+												// ret_hlt[j].start += (str1_start + str1_len);
+												ret_hlt[j].start += str1_start;
+												mmlTxtBlock.push(ret_hlt[j]);
+												// mmlTxtBlock[i].elm.parentNode.insertBefore(ret_hlt[j].elm, elm_txtBlock_next);
+												elm_txtBlock_pn.appendChild(ret_hlt[j].elm);
+											}
+											// mmlTxtBlock[mmlTxtBlock.length-1].next = txtBlock_next;
+											// txtBlock_shiftStart(txtBlock_next, diffLength);
+											
+											console.log(mmlTxtBlock[mmlTxtBlock.length-1]);
+											// mmlTxtBlock.splice(del_idx, 1);
+										}
+									}
+								}
+							} else {
+								console.log("what!");
+								console.log("here1-else");
+								// var str1 = input_txt.substr(mmlTxtBlock[i].start, mmlTxtBlock[i].len + diffLength);
+								var str1_start = mmlTxtBlock[i].start;
+								var str1_len = mmlTxtBlock[i].len;
+								var txtBlock_next = mmlTxtBlock[i].next;
+								var txtBlock_parent = mmlTxtBlock[i].elm.parentNode;
+								if(txtBlock_next) {	// 次グループがある -> 次グループを含めて再評価
+									console.log("here1-else-next");
+									console.log(mmlTxtBlock[i]);
+									var str1 = input_txt.substr(mmlTxtBlock[i].start, mmlTxtBlock[i].len + diffLength);
+									var new_txt_next = str1 + txtBlock_next.elm.innerText;
+									console.log("new_txt_next: " + new_txt_next);
+									var del_idx = mmlTxtBlock.indexOf(mmlTxtBlock[i].next);
+									// txtBlock_next = mmlTxtBlock[i].next;
+									console.log(mmlTxtBlock[i].next.elm);
+									// mmlTxtBlock[i].next.elm.parentNode.removeChild(mmlTxtBlock[i].next.elm);
+									txtBlock_parent.removeChild(mmlTxtBlock[i].next.elm);
+									var ret_hlt = highlightFlMML2(new_txt_next, true);
+									if(ret_hlt.length) {
+										var elm_txtBlock_next = mmlTxtBlock[i].elm.nextSibling;
+										// console.log(elm_txtBlock_next.nextSibling);
+										mmlTxtBlock[i].elm.parentNode.removeChild(mmlTxtBlock[i].elm);
+										console.log(elm_txtBlock_next);
+										// ret_hlt[0].start += (str1_start + str1_len);
+										ret_hlt[0].start = str1_start;
+										mmlTxtBlock[i] = ret_hlt[0];
+										str1_len = ret_hlt[0].elm.innerText.length;
+										if(elm_txtBlock_next) {
+											elm_txtBlock_next.parentNode.insertBefore(ret_hlt[0].elm, elm_txtBlock_next);
+											for(var j=1; j<ret_hlt.length; j++) {
+												// ret_hlt[j].start += (str1_start + str1_len);
+												ret_hlt[j].start += str1_start;
+												mmlTxtBlock.push(ret_hlt[j]);
+												mmlTxtBlock[i].elm.parentNode.insertBefore(ret_hlt[j].elm, elm_txtBlock_next);
+											}
+											// txtBlock_shiftStart(mmlTxtBlock[i].next, diffLength);
+											//txtBlock_shiftStart(txtBlock_next, diffLength);
+											// mmlTxtBlock[i].next.elm.parentNode.removeChild(mmlTxtBlock[i].next.elm);
+											// mmlTxtBlock[i].next = ret_hlt[0];
+											// var del_idx = mmlTxtBlock.indexOf(mmlTxtBlock[i].next);
+											// mmlTxtBlock[mmlTxtBlock.length-1].next = mmlTxtBlock[i].next;
+											mmlTxtBlock[mmlTxtBlock.length-1].next = txtBlock_next.next;
+											txtBlock_shiftStart(txtBlock_next, diffLength);
+										} else {
+											console.log(mmlTxtBlock[i]);
+											console.log(txtBlock_parent);
+											txtBlock_parent.appendChild(ret_hlt[0].elm);
+											for(var j=1; j<ret_hlt.length; j++) {
+												// ret_hlt[j].start += (str1_start + str1_len);
+												ret_hlt[j].start += str1_start;
+												mmlTxtBlock.push(ret_hlt[j]);
+												txtBlock_parent.appendChild(ret_hlt[j].elm);
+											}
+											// mmlTxtBlock[mmlTxtBlock.length-1].next = null;
+											txtBlock_shiftStart(txtBlock_next, diffLength);
+										}
+										// mmlTxtBlock[i].next = ret_hlt[0];
+										console.log(mmlTxtBlock[mmlTxtBlock.length-1]);
+										mmlTxtBlock.splice(del_idx, 1);
+										//var del_idx = mmlTxtBlock.indexOf(mmlTxtBlock[i].next);
+										//mmlTxtBlock.splice(del_idx, 1);
+										// mmlTxtBlock[i].elm.parentNode.removeChild(mmlTxtBlock[i].elm);
+										// del_idx = 
+									}
+								} else {		// 次グループがない -> グループを再評価
+									console.log("here1-else-!next");
+									var str1 = input_txt.substr(mmlTxtBlock[i].start, mmlTxtBlock[i].len + diffLength);
+									console.log("str1: " + str1);
+									// var del_idx = mmlTxtBlock.indexOf(mmlTxtBlock[i].next);
+									// txtBlock_next = mmlTxtBlock[i].next;
+									// mmlTxtBlock[i].next.elm.parentNode.removeChild(mmlTxtBlock[i].next.elm);
+									var ret_hlt = highlightFlMML2(str1, true);
+									if(ret_hlt.length) {
+										var elm_txtBlock_pn = mmlTxtBlock[i].elm.parentNode;
+										mmlTxtBlock[i].elm.parentNode.removeChild(mmlTxtBlock[i].elm);
+										// ret_hlt[0].start += (str1_start + str1_len);
+										ret_hlt[0].start = str1_start;
+										mmlTxtBlock[i] = ret_hlt[0];
+										str1_len = ret_hlt[0].elm.innerText.length;
+										// elm_txtBlock_next.parentNode.insertBefore(ret_hlt[0].elm, elm_txtBlock_next);
+										elm_txtBlock_pn.appendChild(ret_hlt[0].elm);
+										for(var j=1; j<ret_hlt.length; j++) {
+											// ret_hlt[j].start += (str1_start + str1_len);
+											ret_hlt[j].start += str1_start;
+											mmlTxtBlock.push(ret_hlt[j]);
+											// mmlTxtBlock[i].elm.parentNode.insertBefore(ret_hlt[j].elm, elm_txtBlock_next);
+											elm_txtBlock_pn.appendChild(ret_hlt[j].elm);
+										}
+										// mmlTxtBlock[mmlTxtBlock.length-1].next = txtBlock_next;
+										// txtBlock_shiftStart(txtBlock_next, diffLength);
+										
+										console.log(mmlTxtBlock[mmlTxtBlock.length-1]);
+										// mmlTxtBlock.splice(del_idx, 1);
+									}
+								}
+							}
+							break;
+						}
+					}
+				}
+			} else {
+				// var ret_hlt = highlightFlMML3(new_txt);
+				var ret_hlt = highlightFlMML2(input_txt, true);
+				// ret_hlt.start = pos_start;
+				// console.log(ret_hlt);
+				for(var j=0; j<ret_hlt.length; j++) {
+					// ret_hlt[j].start += pos_start;
+					mmlTxtBlock.push(ret_hlt[j]);
+				}
+				for(var j=0; j<mmlTxtBlock.length; j++) {
+					elm_hlt.appendChild(mmlTxtBlock[j].elm);
+				}
+			}
+		}
+		console.log(mmlTxtBlock);
+		mmlTxtPrevLength = newLength;
+	}
+
+	function highlightFlMML2(text, procMacro) {
+		var buf = text;
+		var res = "";
+		var escapeRE = function(str) {
+			return str.replace(/([.*+?^=!:${}()|[\]\/\\])/g, "\\$1");
+		};
+		var macroName = [];
+		var macroArgName = [];
+		var macros = {};
+		var nowMacroArgs = {};
+		var macroNameLens = [];
+		var macroArgNameLens = [];
+		
+		// 一文字だけハイライト [ ["1文字", "クラス"],... ]
+		var oneChar = [
+			["<", "octShftUp"],
+			[">", "octShftDown"],
+			["(", "velUp"],
+			[")", "velDown"],
+			["*", "porta"],
+			["{", "nplet"],
+			["}", "nplet"],
+			["[", "poly"],
+			["]", "poly"],
+			["@", "atmark"]
+		];
+		// 複数文字ハイライト [ [["n文字",...], /対象範囲サーチ正規表現/or文字数n, クラス(, 処理関数)],... ]
+		var multiChars = [
+			[["r","R"], /[^rR0-9\.\s]/, "rest"],
+			[["/:"], /[^0-9\s]/, "loop"],
+			[[":/"], 2, "loop"],
+			// [[":/"], /[^\:][^\/]/, "loop"],
+			[["v","V"], /[^0-9\s]/, "vel"],
+			[["o","O"], /[^0-9\s]/, "oct"],
+			[["l","L"], /[^0-9\s]/, "defLength"],
+			[["q","Q"], /[^0-9\s]/, "defQuant"],
+			[["t","T"], /[^0-9\s]/, "tempo"],
+			[["ns","NS","Ns","nS"], /[^0-9\s\+\-]/, "noteShift"],
+			[["x","X"], /[^0-9\s]/, "velMode"],
+			[["c","d","e","f","g","a","b","C","D","E","F","G","A","B"], /[^a-gA-G0-9\+#\-\.\s]/, "note"],
+
+			[["&c","&d","&e","&f","&g","&a","&b","&C","&D","&E","&F","&G","&A","&B"], /[^0-9\+\-\.\s]/, "tie"],
+			[["&0","&1","&2","&3","&4","&5","&6","&7","&8","&9"], /[^0-9\.\s]/, "tie"],
+			[["@0","@1","@2","@3","@4","@5","@6","@7","@8","@9"], /[^0-9\-\s]/, "tone"],
+			[["@ns","@Ns","@nS","@NS"], /[^0-9\+\-\s]/, "noteShiftR"],
+			[["@d","@D"], /[^0-9,\+\-\s]/, "detune"],
+			[["@l","@L"], /[^0-9,\-\s]/, "LFO"],
+			[["@q","@Q"], /[^0-9\s]/, "abQuant"],
+			[["@v","@V"], /[^0-9\s]/, "fVel"],
+			[["@x","@X"], /[^0-9\s]/, "expr"],
+			[["@pl","@Pl","@pL","@PL"], /[^0-9\s]/, "polyNum"],
+			[["@p","@P"], /[^0-9\s]/, "panpod"],
+			[["@u0","@U0"], 3, "midiPortaOff"],
+			[["@u1","@U1"], 3, "midiPortaOn"],
+			[["@u2","@U2"], /[^,0-9\s]/, "midiPortaVel"],
+			[["@u3","@U3"], /[^,0-9oO\+\-#\s]/, "midiPortaStart"],
+			[["@mh","@Mh","@mH","@MH"], /[^\,0-9\s]/, "fmLFO"],
+			[["@w","@W"], /[^0-9-\s]/, "pDuty"],
+			[["@n","@N"], /[^,0-9\s]/, "noiseFreq"],
+			[["@f","@F"], /[^,0-9-\s]/, "filter"],
+			[["@e1,","@E1,"], /[^,0-9\s]/, "vcaEnv"],
+			[["@e2,","@E2,"], /[^,0-9\s]/, "vcfEnv"],
+			[["@o","@O"], /[^0-3,\s]/, "pipeOut"],
+			[["@i","@I"], /[^0-8,\s]/, "pipeInFM"],
+			[["@r","@R"], /[^0-8,\s]/, "pipeInRing"],
+			[["@s","@S"], /[^0-3,\s]/, "pipeIOSync"]
+		];
+		// 先頭指定複数文字ハイライト [ [["先頭1文字",...], [ ["続くn文字",...], /対象範囲サーチ正規表現/or文字数n, "クラス"(, 処理関数)],... ],... ]
+		var hmultiChars = [
+			[["&"],[
+				[["c","d","e","f","g","a","b","C","D","E","F","G","A","B"], /[^0-9\+\-\.\s]/, "tie"],
+				[["0","1","2","3","4","5","6","7","8","9"], /[^0-9\.\s]/, "tie"]
+			]],
+			[["@"],[
+				[["0","1","2","3","4","5","6","7","8","9"], /[^0-9\-\s]/, "tone"],
+				[["ns","Ns","nS","NS"], /[^0-9\+\-\s]/, "noteShiftR"],
+				[["d","D"], /[^0-9,\+\-\s]/, "detune"],
+				[["l","L"], /[^0-9,\-\s]/, "LFO"],
+				[["q","Q"], /[^0-9\s]/, "abQuant"],
+				[["v","V"], /[^0-9\s]/, "fVel"],
+				[["x","X"], /[^0-9\s]/, "expr"],
+				[["pl","Pl","pL","PL"], /[^0-9\s]/, "polyNum"],
+				[["p","P"], /[^0-9\s]/, "panpod"],
+				[["u0","U0"], 3, "midiPortaOff"],
+				[["u1","U1"], 3, "midiPortaOn"],
+				[["u2","U2"], /[^,0-9\s]/, "midiPortaVel"],
+				[["u3","U3"], /[^,0-9oO\+\-#\s]/, "midiPortaStart"],
+				[["mh","Mh","mH","MH"], /[^\,0-9\s]/, "fmLFO"],
+				[["w","W"], /[^0-9-\s]/, "pDuty"],
+				[["n","N"], /[^,0-9\s]/, "noiseFreq"],
+				[["f","F"], /[^,0-9-\s]/, "filter"],
+				[["e1,","E1,"], /[^,0-9\s]/, "vcaEnv"],
+				[["e2,","E2,"], /[^,0-9\s]/, "vcfEnv"],
+				[["o","O"], /[^0-3,\s]/, "pipeOut"],
+				[["i","I"], /[^0-8,\s]/, "pipeInFM"],
+				[["r","R"], /[^0-8,\s]/, "pipeInRing"],
+				[["s","S"], /[^0-3,\s]/, "pipeIOSync"]
+			]],
+		];
+		// 区間指定ハイライト [ ["開始文字列", "終了文字列", "クラス名"(,処理関数)] ]
+		var blocks = [
+			["/*", "*/", "comment"]
+		]
+		var highlighting = function() {
+			if(buf.length <= 0) return "";
+			// var buf = txt;
+			var chr = buf.charAt(0);
+			var preTag = "";
+			var postTag = "";
+			var preChr = "";
+			var postChr = "";
+			var result = "";
+			var strCnt = 1;
+			var output = function(chr, preTag, preChr, postChr, postTag) {
+				var rtn = preTag + preChr + chr.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") + postChr + postTag;
+				return rtn;
+			};
+			var output_char = function(chr, preChr, postChr) {
+				var rtn = preChr + chr.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") + postChr;
+				return rtn;
+			};
+			if(chr == ";") {	// マクロ/トラック終了
+				nowMacroArgs = {};
+				macroArgNameLens = [];
+				// strCnt = 1;
+				// chr = buf.slice(0, strCnt);
+				preTag = "<span class='endTrack'>";
+				postTag = "</span>";
+				// result += output(chr, preTag, preChr, postChr, postTag);
+				var elm = document.createElement("span");
+				elm.setAttribute("class", "endTrack");
+				elm.innerHTML = output_char(chr, preChr, postChr);
+				buf = buf.slice(strCnt);
+				// return result;
+				return {
+					len: strCnt,
+					searchStr: 1,
+					// htmlStr: result,
+					elm: elm
+				};
+			}
+			if(procMacro && chr == "$") {	// マクロ
+				var ret = buf.indexOf(";");
+				var ret2 = buf.slice(0, ret).indexOf("=");
+				if(ret != -1 && ret2 != -1){		// マクロ宣言
+					var ret3 = buf.slice(0, ret2).indexOf("\{");
+					var tmpStr;
+					if(ret3 != -1){
+						tmpStr = buf.slice(1, ret3).trimRight()+"{";
+						// tmpStr = buf.slice(1, ret3).trimRight();
+					}else{
+						tmpStr = buf.slice(1, ret2).trimRight();
+					}
+					if(macros[tmpStr] != null) {
+						macroName.push(tmpStr);
+					}
+					macros[tmpStr] = [];
+					// if(!macroNameLens[tmpStr.length]) {
+					macroNameLens.push(tmpStr.length);
+					// }
+					/*
+					if(macroName.length){
+						for(var i=0; i<macroName.length; i++){
+							if(macroName[i].length <= tmpStr.length){
+								macroName.splice(i, 0, tmpStr);
+								break;
+							}else if(i+1 >= macroName.length){
+								macroName.push(tmpStr);
+							}
+						}
+					}else{
+						macroName.push(tmpStr);
+					}
+					*/
+					if(ret3 != -1){	// 引数付きマクロ
+						var macroArgs = buf.slice(ret3 + 1, buf.slice(0, ret2).indexOf("\}")).replace(/\s/g, "").split(",");
+						for(var i=0; i<macroArgs.length; i++) {
+							nowMacroArgs[macroArgs[i]] = true;
+							// if(!macroArgNameLens[macroArgs[i].length]) {
+							macroArgNameLens.push(macroArgs[i].length);
+							// }
+						}
+						// macroArgName = tmpStr;
+						macros[tmpStr] = nowMacroArgs;
+						// macroArgs
+					}
+					strCnt = ret2; // + 1 - 1;
+					chr = buf.slice(0, strCnt);
+					preTag = "<span class='macroDecl'>";
+					postTag = "</span>";
+					var elm = document.createElement("span");
+					elm.setAttribute("class", "macroDecl");
+					elm.innerHTML = output_char(chr, preChr, postChr);
+					result += output(chr, preTag, preChr, postChr, postTag);
+					buf = buf.slice(strCnt);
+					// return result;
+					return {
+						len: strCnt,
+						searchStr: /[^=]/,
+						elm: elm
+					};
+				} else if(procMacro) {
+					// var matching = false;
+					macroNameLens.filter(function(x, i, self){
+						return self.indexOf(x) === i;
+					}).sort(function(a,b){
+						return b - a;
+					});
+					for(var i=0; i<macroNameLens.length; i++) {
+						// var mName = buf.slice(1, macroNameLenMax+1-i); 
+						var mName = buf.slice(1, macroNameLens[i]+1); 
+						if(macros[mName] != null){	// 宣言済みマクロなら
+							if(Object.keys(macros[mName]).length > 0) {
+								var ret3 = buf.indexOf("\}");
+								if(ret3 != -1) {
+									strCnt = ret3 + 1;
+									chr = buf.slice(0, strCnt);
+								}else{
+									strCnt = buf.length;
+									chr = buf;
+								}
+							}else{
+								strCnt = mName.length + 1;
+								chr = buf.slice(0, strCnt);
+							}
+							preTag = "<span class='macroUse'>";
+							postTag = "</span>";
+							var elm = document.createElement("span");
+							elm.setAttribute("class", "macroUse");
+							elm.innerHTML = output_char(chr, preChr, postChr);
+							result += output(chr, preTag, preChr, postChr, postTag);
+							buf = buf.slice(strCnt);
+							// return result;
+							return {
+								len: strCnt,
+								searchStr: strCnt,
+								elm: elm
+							};
+						}
+					}
+					/*
+						for(var i=0; i<macroName.length; i++){
+							if(buf.slice(1, macroName[i].length+1) == macroName[i]){	// 宣言済みマクロなら
+								var ret3 = macroName[i].lastIndexOf("\{");
+								if(ret3 != -1){	// 引数付きマクロ
+									var ret4 = buf.indexOf("\}");
+									if(ret4 != -1){
+										strCnt = ret4 + 1;
+										chr = buf.slice(0, strCnt);
+									}else{
+										strCnt = buf.length;
+										chr = buf;
+									}
+								}else{
+									strCnt = macroName[i].length + 1;
+									chr = buf.slice(0, strCnt);
+								}
+								// matching = true;
+								break;
+							}
+						}
+					
+					// if(!matching){
+					//	strCnt = buf.length;
+					//	chr = buf;
+					// }
+					preTag = "<span class='macroUse'>";
+					postTag = "</span>";
+					*/
+				}
+			}
+			if(procMacro && chr == "%") {	// マクロ内引数
+				// var macroArg = buf.slice(1, macroArgNameLenMax+1);
+				macroArgNameLens.filter(function(x, i, self){
+					return self.indexOf(x) === i;
+				}).sort(function(a,b){
+					return b - a;
+				});
+				// console.log(macroArgNameLens);
+				for(var i=0; i<macroArgNameLens.length; i++) {
+					var macroArg = buf.slice(1, macroArgNameLens[i]+1);
+					if(nowMacroArgs[macroArg]){	// 宣言済みマクロなら
+						strCnt = macroArg.length + 1;
+						chr = buf.slice(0, strCnt);
+						preTag = "<span class='macroDecl'>";
+						postTag = "</span>";
+						var elm = document.createElement("span");
+						elm.setAttribute("class", "macroDecl");
+						elm.innerHTML = output_char(chr, preChr, postChr);
+						result += output(chr, preTag, preChr, postChr, postTag);
+						buf = buf.slice(strCnt);
+						// return result;
+						return {
+							len: strCnt,
+							searchStr: strCnt,
+							elm: elm
+						};
+					}
+				}
+				/*
+				if(nowMacroArgs[]){
+					for(var i=0; i<macroArgName.length; i++){
+							if(buf.slice(1, macroArgName[i].length+1) == macroArgName[i]){	// 宣言済みマクロなら
+								strCnt = macroArgName[i].length + 1;
+								chr = buf.slice(0, strCnt);
+								break;
+							}
+					}
+					preTag = "<span class='macroDecl'>";
+					postTag = "</span>";
+				}
+				*/
+			}
+
+			for(var i=0; i<blocks.length; i++) {
+				var search1_len = blocks[i][0].length;
+				var ret = buf.slice(0, search1_len);
+				if(ret != blocks[i][0]) {
+					continue;
+				}
+				if(blocks[i][3] != null) {
+
+				} else {
+					var ret2 = buf.indexOf(blocks[i][1]);
+					if(ret2 != -1){
+						strCnt = ret2 + 2;
+						chr = buf.slice(0, strCnt);
+					}else{	// 終わり見つからず
+						strCnt = buf.length;
+						chr = buf;
+					}
+					preTag = '<span class="' + blocks[i][2] + '">';
+					postTag = '</span>';
+					var elm = document.createElement("span");
+					elm.setAttribute("class", blocks[i][2]);
+					elm.innerHTML = output_char(chr, preChr, postChr);
+					result += output(chr, preTag, preChr, postChr, postTag);
+					buf = buf.slice(strCnt);
+					// return result;
+					return {
+						len: strCnt,
+						searchStr: strCnt,
+						elm: elm
+					};
+				}
+			}
+
+			var chrReg = new RegExp(escapeRE(chr));
+			if(chrReg.test("^#")){	// メタデータ
+				var ret = buf.indexOf("\n");
+				var ret2 = buf.slice(0, ret).indexOf("{");
+				if(ret != -1){
+					strCnt = ret + 1;
+					chr = buf.slice(0, strCnt);
+				}else{
+					strCnt = buf.length;
+					chr = buf;
+				}
+				preTag = "<span class='metaData'>";
+				postTag = "</span>";
+				var elm = document.createElement("span");
+				elm.setAttribute("class", "metaData");
+				elm.innerHTML = output_char(chr, preChr, postChr);
+				result += output(chr, preTag, preChr, postChr, postTag);
+				buf = buf.slice(strCnt);
+				// return result;
+				return {
+					len: strCnt,
+					searchStr: /\n/,
+					elm: elm
+				};
+			}
+
+			for(var i=0; i<hmultiChars.length; i++) {
+				// for(var j=0; j<hmultiChars[i][0].length; j++)
+				// if(chr == hmultiChars[i][0][j])
+				if(chr == hmultiChars[i][0][0]) {
+					for(var j=0; j<hmultiChars[i][1].length; j++) {
+						var search1_len = hmultiChars[i][1][j][0][0].length;
+						var ret = buf.slice(1, 1+search1_len);
+						for(var k=0; k<hmultiChars[i][1][j][0].length; k++) {
+							if(ret != hmultiChars[i][1][j][0][k]) {
+								continue;
+							}
+							var head_len = hmultiChars[i][0][0].length;
+							if(typeof hmultiChars[i][1][j][1] != "number") {
+								var ret2 = buf.slice(head_len+search1_len).search(hmultiChars[i][1][j][1]);
+								// console.log(ret2);
+								if(ret2 != -1) {
+									strCnt = ret2 + head_len+search1_len;
+									chr = buf.slice(0, strCnt);
+								} else {
+									// strCnt = 1 + head_len+search1_len;
+									strCnt = buf.length;
+									chr = buf.slice(0, strCnt);
+								}
+							} else {
+								strCnt = hmultiChars[i][1][j][1];
+								chr = buf.slice(0, hmultiChars[i][1][j][1]);
+							}
+							preTag = '<span class="' + hmultiChars[i][1][j][2] + '">';
+							postTag = '</span>';
+							var elm = document.createElement("span");
+							elm.setAttribute("class", hmultiChars[i][1][j][2]);
+							elm.innerHTML = output_char(chr, preChr, postChr);
+							result += output(chr, preTag, preChr, postChr, postTag);
+							// result += highlighting(buf.slice(strCnt));
+							buf = buf.slice(strCnt);
+							// return result;
+							return {
+								len: strCnt,
+								searchStr: hmultiChars[i][1][j][1],
+								elm: elm
+							};
+						}
+					}
+				}
+			}
+			for(var i=0; i<multiChars.length; i++) {
+				var search1_len = multiChars[i][0][0].length;
+				var ret = buf.slice(0, search1_len);
+				for(var j=0; j<multiChars[i][0].length; j++) {
+					// for(var k=0; k<multiChars[i][0][j].length; k++){
+						if(ret != multiChars[i][0][j]) {
+							continue;
+						}
+						if(typeof multiChars[i][1] != "number") {
+							var ret2 = buf.slice(search1_len).search(multiChars[i][1]);
+							if(ret2 != -1) {
+								strCnt = ret2 + search1_len;
+								chr = buf.slice(0, strCnt);
+							} else {
+								strCnt = buf.length;
+								// strCnt = 1 + search1_len;
+								chr = buf.slice(0, strCnt);
+							}
+						} else {
+							strCnt = multiChars[i][1];
+							chr = buf.slice(0, multiChars[i][1]);
+						}
+						preTag = '<span class="' + multiChars[i][2] + '">';
+						postTag = '</span>';
+						var elm = document.createElement("span");
+						elm.setAttribute("class", multiChars[i][2]);
+						elm.innerHTML = output_char(chr, preChr, postChr);
+						result += output(chr, preTag, preChr, postChr, postTag);
+						// result += highlighting(buf.slice(strCnt));
+						buf = buf.slice(strCnt);
+						// return result;
+						return {
+							len: strCnt,
+							searchStr: multiChars[i][1],
+							elm: elm
+						};
+					// }
+				}
+			}
+
+			for(var i=0; i<oneChar.length; i++) {
+				if(chr != oneChar[i][0]) {
+					continue;
+				}
+				preTag = '<span class="' + oneChar[i][1] + '">';
+				postTag = '</span>';
+				var elm = document.createElement("span");
+				elm.setAttribute("class", oneChar[i][1]);
+				elm.innerHTML = output_char(chr, preChr, postChr);
+				result += output(chr, preTag, preChr, postChr, postTag);
+				// result += highlighting(buf.slice(1));
+				buf = buf.slice(1);
+				// return result;
+				return {
+					len: 1,
+					searchStr: 1,
+					elm: elm
+				}
+			}
+			
+			result += output(chr, preTag, preChr, postChr, postTag);
+			var elm = document.createElement("span");
+			// elm.setAttribute("class", hmultiChars[i][1][j][2]);
+			elm.innerHTML = output_char(chr, preChr, postChr);
+			// result += highlighting(buf.slice(strCnt));
+			buf = buf.slice(strCnt);
+			// return result;
+			return {
+				len: strCnt,
+				searchStr: strCnt,
+				elm: elm
+			}
+		};
+		res = [];
+		while(buf.length > 0) {
+			// res += highlighting();
+			var res_tmp = highlighting();
+			res.push(res_tmp);
+		}
+		var res_start = 0;
+		for(var i=0; i<res.length; i++) {
+			res[i].start = res_start;
+			res_start += res[i].len;
+		}
+		for(var i=1; i<res.length; i++) {
+			res[i].prev = res[i-1];
+		}
+		for(var i=res.length-2; i>=0; i--) {
+			res[i].next = res[i+1];
+		}
+		// console.log(res[res.length-1]);
+		if(res.length) {
+			res[0].prev = null;
+			res[res.length-1].next = null;
+		}
+
+		return res;
 	}
 	
 	function highlightFlMML(text) {
@@ -1292,7 +2524,7 @@ var FlMMLWriter = function () {
 		return result;
 	}
 	
-	function changeHltMode (mode) {
+	function changeHltMode (mode, evt_input) {
 		if(mode === "delay") {
 			editorHltOn = editorHltDelayed = true;
 		} else if(mode === "rt") {
@@ -1306,12 +2538,42 @@ var FlMMLWriter = function () {
 		var elmHlt = document.getElementById("mmlhighlight");
 		var elmTxt = document.getElementById("mmltxt");
 		if(editorHltOn){
-			elmHlt.innerHTML = highlightFlMML(elmTxt.value);
+			if(editorHltDelayed) {
+				// elmHlt.innerHTML = highlightFlMML3_pre(evt_input, elmHlt);
+				// highlightFlMML3_pre2(evt_input, elmHlt);
+				var tmp_obj = highlightFlMML2(elmTxt.value, true);
+				elmHlt.innerHTML = "";
+				for(var i=0; i<tmp_obj.length; i++) {
+					elmHlt.appendChild(tmp_obj[i].elm);
+				}
+				// elmHlt.innerHTML = highlightFlMML2(elmTxt.value, true);
+			} else {
+				var cancelUpdt = function () {
+					if(typeof delayTimeoutID == "number") {
+						window.clearTimeout(delayTimeoutID);
+						delayTimeoutID = "";
+					}
+				};
+				// highlightFlMML3_pre2(evt_input, elmHlt);
+				// elmHlt.innerHTML = highlightFlMML3_pre(evt_input);
+				// elmHlt.innerHTML = highlightFlMML2(elmTxt.value, false);
+				var tmp_obj = highlightFlMML2(elmTxt.value, false);
+				elmHlt.innerHTML = "";
+				for(var i=0; i<tmp_obj.length; i++) {
+					elmHlt.appendChild(tmp_obj[i].elm);
+				}
+				// cancelUpdt();
+				// macroDelayTimeoutID = window.setTimeout(function() {
+				//	highlightFlMML3_pre(evt_input, elmHlt);
+					// elmHlt.innerHTML = highlightFlMML3_pre(evt_input);
+					// elmHlt.innerHTML = highlightFlMML2(elmTxt.value, true);
+				// }, delayTimeMSec);
+			}
 			
 			elmHlt.style.visibility = "visible";
 			if(editorColor === "")
 				editorColor = (elmTxt.currentStyle || document.defaultView.getComputedStyle(elmTxt, '')).color;
-			elmTxt.style.color = "rgba(200, 200, 160, 0.5)";
+			elmTxt.style.color = "rgba(200, 200, 160, 0.1)";
 		}else{
 			if(typeof delayTimeoutID == "number") {
 				window.clearTimeout(delayTimeoutID);
@@ -1323,10 +2585,10 @@ var FlMMLWriter = function () {
 		}
 	};
 	
-	var updateHlt = function () {
+	var updateHlt = function (evt_input) {
 			var elmHlt = document.getElementById("mmlhighlight");
 			var elmTxt = document.getElementById("mmltxt");
-			changeHltMode ()
+			changeHltMode (false, evt_input)
 			elmHlt.style.top = -elmTxt.scrollTop + "px";
 			elmHlt.style.width = elmTxt.innerWidth + "px";
 	};
@@ -1382,8 +2644,24 @@ var FlMMLWriter = function () {
 		elmHltWrap.style.height = elmTxt.style.height;
 		// elmHltWrap.style.padding = "4px";
 		// elmHltWrap.style.color = "#EEE";
-		
+
+		elmTxt.addEventListener("keypress", function(e) {
+			var key = e.key;
+			// console.log(e);
+			// if(key == "ArrowLeft" || key == "ArrowRight" ||
+			// key == "ArrowUp" || key == "ArrowDown") {
+			var offset = 0;
+			// console.log(key);
+			var textVal = e.target.value;
+			var pos = e.target.selectionEnd;
+			var prevChar = textVal.charAt(pos-1) || "";
+			var nextChar = textVal.charAt(pos) || "";
+			// console.log("prev: " + prevChar + ",next: " + nextChar);
+			// }
+		});
+
 		elmTxt.addEventListener("input", function(e) {
+			// console.log(e);
 			var cancelUpdt = function () {
 				if(typeof delayTimeoutID == "number") {
 					window.clearTimeout(delayTimeoutID);
@@ -1398,10 +2676,16 @@ var FlMMLWriter = function () {
 					elmTxt.style.color = editorColor;
 					cancelUpdt();
 					delayTimeoutID = window.setTimeout(function() {
-						updateHlt();
+						updateHlt(e);
 					}, delayTimeMSec);
 				}else{
-					updateHlt();
+					updateHlt(e);
+					cancelUpdt();
+					delayTimeoutID = window.setTimeout(function() {
+						editorHltDelayed = true;
+						updateHlt(e);
+						editorHltDelayed = false;
+					}, delayTimeMSec);
 				}
 				elmHlt.style.top = -elmTxt.scrollTop + "px";
 				elmHlt.style.width = elmTxt.innerWidth + "px";
