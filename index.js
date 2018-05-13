@@ -40,8 +40,6 @@ app.on("ready", () => {
     });
 
     initWindowMenu();
-
-    mainWindow.webContents.openDevTools();
 });
 
 function initWindowMenu(){
