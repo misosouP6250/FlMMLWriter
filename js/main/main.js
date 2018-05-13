@@ -348,8 +348,10 @@ var FlMMLWriter = function () {
 		var elmHlt = document.getElementById("mmlhighlight");
 
 		elm.value = txt;
-		// elmHlt
-		elmHlt.innerHTML = highlightFlMML2(txt, true);
+		var editorHltDelayed_tmp = editorHltDelayed;
+		editorHltDelayed = true;
+		changeHltMode(false, {target: elm});
+		editorHltDelayed = editorHltDelayed_tmp;
 		updateScrBar();
 	}
 	
