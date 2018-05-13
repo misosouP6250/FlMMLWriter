@@ -2,20 +2,13 @@
 <html>
 <head>
 <meta charset="UTF-8" />
+<!-- <meta http-equiv="Content-Security-Policy" content="script-src 'self'" /> -->
 <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1" />
 <title>FlMMLWriter</title>
 <script type="text/javascript" src="js/FlMMLonHTML5/flmmlonhtml5-raw.js"></script>
 <script type="text/javascript" src="js/main/main.js"></script>
-<script type="text/javascript">
-"use strict";
-	var writer;
-	document.addEventListener("DOMContentLoaded", function () {
-		writer = new FlMMLWriter();
-	});
-	window.addEventListener("load", function () {
-		writer.changeHltMode("delay");
-	});
-</script>
+<script type="text/javascript" src="js/main/loader.js"></script>
+<script type="text/javascript" src="js/electron/ipc.js"></script>
 <!-- <link rel="stylesheet" type="text/css" href="css/normalize.css"> -->
 <link rel="icon" href="favicon.ico" />
 <link rel="apple-touch-icon" href="img/FlMMLWriter-icon.ico" />
