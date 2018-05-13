@@ -272,6 +272,26 @@ span.endTrack {
 	color: #FF1493;
 }
 
+/* パイプ出力 [@[oO][0-2],[0-3]] */
+span.pipeOut {
+	color: #33BF44;
+}
+
+/* パイプ入力(FM) [@[iI][0-8],[0-3]] */
+span.pipeInFM {
+	color: #55CC77;
+}
+
+/* パイプ入力(Ring) [@[iI][0-8],[0-3]] */
+span.pipeInRing {
+	color: #77CC55;
+}
+
+/* パイプ入出力(Sync) [@[sS][0-2],[0-3]] */
+span.pipeIOSync {
+	color: #22CC88;
+}
+
 /* テキストエリア, ハイライト共通 */
 textarea#mmltxt,
 textarea#mmlwarn,
@@ -285,7 +305,7 @@ span#mmlhighlight {
 	white-space: pre-wrap;
 	word-wrap: break-word;
 	overflow: hidden;
-	padding: 8px;
+	padding: 9px;
 	margin: 0;
 	top: 0;
 	left: 0;
