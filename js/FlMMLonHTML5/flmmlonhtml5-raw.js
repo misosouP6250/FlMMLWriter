@@ -286,6 +286,7 @@ var FlMMLonHTML5 = function () {
             var bufSrcDmy = audioCtx.createBufferSource();
             bufSrcDmy.connect(audioCtx.destination);
             bufSrcDmy.start(0);
+            audioCtx.resume();  // Chrome対策
             document.removeEventListener("click", onClick);
         });
     });
