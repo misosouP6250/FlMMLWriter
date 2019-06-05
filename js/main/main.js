@@ -54,7 +54,7 @@ var FlMMLWriter = function () {
 	var saveFilename = "flmml";
 	var isEncodeMP3 = false;
 	var oldBufferReady = false;
-	var mp3worker = new Worker("js/FlMMLonHTML5/encoder.js");
+	var mp3worker = new Worker("js/main/encoder.js");
 	var encodedArray;
 
 	// function flmmlDefaultPlaySound(){};
@@ -437,7 +437,7 @@ var FlMMLWriter = function () {
 	
 	function createFlMMLonHTML5() {
 		if(isPlay){
-			flmml = new FlMMLonHTML5(false,false,"flmmlworker.js");
+			flmml = new FlMMLonHTML5("flmmlworker.js");
 			flmml.oncompilecomplete = onCompileComplete;
 			flmml.onsyncinfo = onSyncInfo;
 			flmml.onbuffering = onBuffering;
@@ -446,7 +446,7 @@ var FlMMLWriter = function () {
 			// console.log(flmml);
 			// flmmlDefaultAudioProcess = flmml.onAudioProcessBinded;
 		}else{
-			flmml = new FlMMLonHTML5(saveSampleRate,saveBufferSize,"flmmlworker.js");
+			flmml = new FlMMLonHTML5("flmmlworker.js",saveSampleRate,saveBufferSize);
 			flmml.oncompilecomplete = onCompileComplete;
 			flmml.onsyncinfo = onSyncInfo;
 			flmml.onbuffering = onBuffering;
