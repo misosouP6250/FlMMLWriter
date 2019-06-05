@@ -54,7 +54,7 @@ var FlMMLWriter = function () {
 	var saveFilename = "flmml";
 	var isEncodeMP3 = false;
 	var oldBufferReady = false;
-	var mp3worker = new Worker("js/FlMMLonHTML5/encoder.js");
+	var mp3worker = new Worker("js/main/encoder.js");
 	var encodedArray;
 
 	// function flmmlDefaultPlaySound(){};
@@ -437,7 +437,7 @@ var FlMMLWriter = function () {
 	
 	function createFlMMLonHTML5() {
 		if(isPlay){
-			flmml = new FlMMLonHTML5(false,false,"flmmlworker.js");
+			flmml = new FlMMLonHTML5("flmmlworker.js");
 			flmml.oncompilecomplete = onCompileComplete;
 			flmml.onsyncinfo = onSyncInfo;
 			flmml.onbuffering = onBuffering;
@@ -446,7 +446,7 @@ var FlMMLWriter = function () {
 			// console.log(flmml);
 			// flmmlDefaultAudioProcess = flmml.onAudioProcessBinded;
 		}else{
-			flmml = new FlMMLonHTML5(saveSampleRate,saveBufferSize,"flmmlworker.js");
+			flmml = new FlMMLonHTML5("flmmlworker.js",saveSampleRate,saveBufferSize);
 			flmml.oncompilecomplete = onCompileComplete;
 			flmml.onsyncinfo = onSyncInfo;
 			flmml.onbuffering = onBuffering;
@@ -2605,8 +2605,11 @@ var FlMMLWriter = function () {
 	
 	var onBarMove = function (ev) {
 		var elmTxt = document.getElementById("mmltxt");
-		elmTxt.scrollTop += (ev.pageY - this.barOfsTop) * (elmTxt.scrollHeight / elmTxt.offsetHeight);
-		this.barOfsTop = ev.pageY;
+		var elmHeader = document.getElementById("header");
+		var elmScrBar = document.getElementById("scrollBar");
+		var headerCurStyle = elmHeader.currentStyle || document.defaultView.getComputedStyle(elmHeader, '');
+		var scrBarCurStyle = elmScrBar.currentStyle || document.defaultView.getComputedStyle(elmScrBar, '');
+		elmTxt.scrollTop = (ev.pageY - parseInt(headerCurStyle.height) - barOfsTop) * (elmTxt.scrollHeight / elmTxt.offsetHeight);
 		updateScrBar();
 		return false;
 	};
@@ -2749,7 +2752,7 @@ var FlMMLWriter = function () {
 		var onBarMousedown = function (e) {
 			e.preventDefault();
 			barMousedown = true;
-			barOfsTop = e.pageY;
+			barOfsTop = e.offsetY;
 			window.addEventListener("mousemove", onBarMove);
 		};
 		elmScrBar.addEventListener("mousedown", onBarMousedown);
