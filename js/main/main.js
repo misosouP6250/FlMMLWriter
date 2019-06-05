@@ -2605,8 +2605,11 @@ var FlMMLWriter = function () {
 	
 	var onBarMove = function (ev) {
 		var elmTxt = document.getElementById("mmltxt");
-		elmTxt.scrollTop += (ev.pageY - this.barOfsTop) * (elmTxt.scrollHeight / elmTxt.offsetHeight);
-		this.barOfsTop = ev.pageY;
+		var elmHeader = document.getElementById("header");
+		var elmScrBar = document.getElementById("scrollBar");
+		var headerCurStyle = elmHeader.currentStyle || document.defaultView.getComputedStyle(elmHeader, '');
+		var scrBarCurStyle = elmScrBar.currentStyle || document.defaultView.getComputedStyle(elmScrBar, '');
+		elmTxt.scrollTop = (ev.pageY - parseInt(headerCurStyle.height) - barOfsTop) * (elmTxt.scrollHeight / elmTxt.offsetHeight);
 		updateScrBar();
 		return false;
 	};
@@ -2749,7 +2752,7 @@ var FlMMLWriter = function () {
 		var onBarMousedown = function (e) {
 			e.preventDefault();
 			barMousedown = true;
-			barOfsTop = e.pageY;
+			barOfsTop = e.offsetY;
 			window.addEventListener("mousemove", onBarMove);
 		};
 		elmScrBar.addEventListener("mousedown", onBarMousedown);
